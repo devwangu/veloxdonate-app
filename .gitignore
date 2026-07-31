@@ -1,0 +1,43 @@
+# Python & Environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+venv/
+ENV/
+
+# Database & Config
+*.db
+*.sqlite3
+config.json
+@AutomationLog.txt
+
+# Executables & Builds
+bin/cloudflared.exe
+*.exe
+*.spec
+dist/
+build/
+dist_portable/
+dist_zip/
+build_cache/
+debug/
+
+# Dev Scripts & Tools
+set_version.py
+bump_version.py
+
+# Temp / Update artifacts
+update_tmp/
+test_res.json
+*.log
+
+# User Uploads & Caches
+static/uploads/images/*
+!static/uploads/images/.gitkeep
+static/uploads/sounds/*
+!static/uploads/sounds/.gitkeep
+static/tts_cache/*
+!static/tts_cache/.gitkeep

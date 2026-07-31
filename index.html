@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donate - Support the Streamer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 1. Donation Form Card -->
+        <div class="card" id="donation-card">
+            <div class="header">
+                <h1 id="header-streamer-title">Support Streamer</h1>
+                <p id="header-streamer-sub">สนับสนุนสตรีมเมอร์ผ่านระบบ PromptPay QR Code</p>
+            </div>
+            
+            <form id="donation-form" onsubmit="submitDonation(event)">
+                <div class="form-group">
+                    <label for="name">ชื่อผู้สนับสนุน (Display Name)</label>
+                    <input type="text" id="name" class="form-control" placeholder="ใส่ชื่อของคุณที่นี่..." required maxlength="30">
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">ข้อความให้กำลังใจ (Message)</label>
+                    <textarea id="message" class="form-control" placeholder="เขียนข้อความส่งถึงสตรีมเมอร์..." maxlength="100"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="amount">จำนวนเงิน (THB)</label>
+                    <div class="input-amount-wrapper">
+                        <input type="number" id="amount" class="form-control" placeholder="100" min="1" max="50000" step="1" required style="width: 100%; padding-right: 60px;">
+                        <span class="currency-symbol">บาท</span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit" id="submit-btn">ดำเนินการต่อ</button>
+            </form>
+        </div>
+
+        <!-- 2. QR Code Card (Hidden initially) -->
+        <div class="card qr-container" id="qr-card">
+            <div class="header">
+                <h1>ชำระเงินสนับสนุน</h1>
+                <p>แสกนคิวอาร์โค้ดผ่านแอปพลิเคชันธนาคารเพื่อทำรายการ</p>
+            </div>
+            
+            <div class="timer-wrapper">
+                <div class="timer-dot" id="timer-dot"></div>
+                <div class="timer-text" id="timer-text">05:00</div>
+            </div>
+            
+            <div>
+                <div class="qr-card">
+                    <!-- Standard PromptPay header logo for user assurance -->
+                    <img src="https://promptpay.io/assets/promptpay-logo.png" class="promptpay-header" alt="PromptPay Logo" onerror="this.style.display='none'">
+                    <img id="qr-img" class="qr-image" src="" alt="PromptPay QR Code">
+                </div>
+            </div>
+            
+            <div class="amount-display">
+                <span style="font-size: 1.5rem; font-weight: 500;">฿</span>
+                <span id="display-decimal-amount">100.00</span>
+            </div>
+            <div class="amount-original" id="display-original-amount-row" style="display: none;">
+                จากยอดปกติ: <span id="display-original-amount">100.00</span> บาท
+            </div>
+            
+            <div class="instruction-text">
+                <strong>สำคัญมาก:</strong> กรุณาโอนเงินตามยอดเศษทศนิยมด้านบนให้ตรงเป๊ะ (ห้ามปัดเศษเศษทศนิยมขึ้นหรือลง) เพื่อให้ระบบตรวจจับยอดและแสดงการแจ้งเตือนบนสตรีมได้ทันที
+            </div>
+
+            <!-- Notice for donations below minimum threshold -->
+            <div id="low-amount-notice" style="display: none; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 10px; padding: 14px 16px; margin-top: 15px; font-size: 0.88rem; color: #fde68a; line-height: 1.5; text-align: left;">
+                <i class="fa-solid fa-triangle-exclamation" style="color: #fbbf24; margin-right: 6px; font-size: 1rem;"></i>
+                <strong>แจ้งเตือนจากระบบ:</strong> ยอดเงิน <span id="notice-user-amount" style="font-weight: bold; color: #fff;">0</span> บาท ต่ำกว่ายอดขั้นต่ำสำหรับโชว์บนจอ (<span id="notice-min-amount" style="font-weight: bold; color: #fff;">10</span> บาท) <br>
+                <span style="opacity: 0.9;">* เงินจะเข้าบัญชีสตรีมเมอร์ตามปกติ แต่ป๊อปอัปแจ้งเตือนจะไม่แสดงบนหน้าจอไลฟ์สตรีม (OBS) ครับ</span>
+            </div>
+            
+            <button class="btn-back" onclick="cancelDonation()">ยกเลิกรายการ</button>
+        </div>
+
+        <!-- 3. Success Card (Hidden initially) -->
+        <div class="card success-container" id="success-card">
+            <div class="success-icon">✓</div>
+            <h1 class="success-title">ขอบคุณสำหรับการสนับสนุน!</h1>
+            <p class="success-message" id="success-msg">
+                ยอดโอนจำนวน 100 บาท ของคุณได้รับการยืนยันเรียบร้อยแล้ว ข้อความของคุณกำลังเตรียมแสดงผลบนหน้าจอไลฟ์สตรีม
+            </p>
+            <button class="btn-submit" onclick="resetForm()">โอนสนับสนุนอีกครั้ง</button>
+        </div>
+    </div>
+
+    <script>
+        function getApiUrl() {
+            let base = (document.querySelector('base') && document.querySelector('base').getAttribute('href')) || window.location.pathname;
+            base = base.replace(/\/+$/, '');
+            if (base.endsWith('/donate')) {
+                base = base.substring(0, base.length - 7);
+            }
+            return (base ? base : '') + '/api';
+        }
+        const API_URL = getApiUrl();
+        
+        let pollingInterval = null;
+        let timerInterval = null;
+        let activeDonationId = null;
+        let timeoutSeconds = 300;
+
+        async function submitDonation(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById("submit-btn");
+            submitBtn.disabled = true;
+            submitBtn.textContent = "กำลังสร้างคิวอาร์โค้ด...";
+
+            const name = document.getElementById("name").value;
+            const message = document.getElementById("message").value;
+            const amount = document.getElementById("amount").value;
+
+            try {
+                const response = await fetch(`${API_URL}/donate`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ name, message, amount })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    alert(err.error || "เกิดข้อผิดพลาดในการสร้างรายการ");
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "ดำเนินการต่อ";
+                    return;
+                }
+
+                const data = await response.json();
+                activeDonationId = data.donation_id;
+                timeoutSeconds = data.timeout;
+
+                // Update QR View
+                document.getElementById("qr-img").src = data.qr_code;
+                document.getElementById("display-decimal-amount").textContent = data.decimal_amount.toFixed(2);
+                
+                // Show original amount cross-through if decimal changed
+                if (data.amount !== data.decimal_amount) {
+                    document.getElementById("display-original-amount").textContent = Number(data.amount).toFixed(2);
+                    document.getElementById("display-original-amount-row").style.display = "block";
+                } else {
+                    document.getElementById("display-original-amount-row").style.display = "none";
+                }
+
+                // Check minimum donation threshold notice
+                const noticeBox = document.getElementById("low-amount-notice");
+                if (data.amount < data.minimum_donation) {
+                    document.getElementById("notice-user-amount").textContent = Number(data.amount).toFixed(2);
+                    document.getElementById("notice-min-amount").textContent = Number(data.minimum_donation).toFixed(2);
+                    noticeBox.style.display = "block";
+                } else {
+                    noticeBox.style.display = "none";
+                }
+
+                // Show QR Code Card, hide Form
+                document.getElementById("donation-card").style.display = "none";
+                document.getElementById("qr-card").style.display = "block";
+
+                // Start Timer & Polling
+                startTimer(timeoutSeconds);
+                startPolling(activeDonationId);
+
+            } catch (error) {
+                console.error("Error creating donation:", error);
+                alert("ไม่สามารถเชื่อมต่อระบบเซิร์ฟเวอร์ได้ กรุณาตรวจสอบว่าเซิร์ฟเวอร์เปิดใช้งานอยู่");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "ดำเนินการต่อ";
+            }
+        }
+
+        function startTimer(duration) {
+            clearInterval(timerInterval);
+            let timeRemaining = duration;
+            const timerText = document.getElementById("timer-text");
+            const timerDot = document.getElementById("timer-dot");
+            
+            timerText.classList.remove("danger");
+            timerDot.classList.remove("danger");
+
+            function updateTimer() {
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                timerText.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                if (timeRemaining <= 60) {
+                    timerText.classList.add("danger");
+                    timerDot.classList.add("danger");
+                }
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    handleExpiration();
+                }
+                timeRemaining--;
+            }
+
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function startPolling(donationId) {
+            clearInterval(pollingInterval);
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_URL}/donation/status/${donationId}`);
+                    if (!response.ok) return;
+                    
+                    const data = await response.json();
+                    if (data.status === "success") {
+                        clearInterval(pollingInterval);
+                        clearInterval(timerInterval);
+                        showSuccessScreen(data.donation);
+                    } else if (data.status === "expired") {
+                        clearInterval(pollingInterval);
+                        clearInterval(timerInterval);
+                        handleExpiration();
+                    }
+                } catch (error) {
+                    console.error("Error checking status:", error);
+                }
+            }, 1500); // Poll every 1.5 seconds
+        }
+
+        function showSuccessScreen(donation) {
+            document.getElementById("qr-card").style.display = "none";
+            document.getElementById("success-card").style.display = "block";
+            
+            document.getElementById("success-msg").innerHTML = `
+                ยอดโอนสนับสนุนจำนวน <strong>${donation.decimal_amount.toFixed(2)} บาท</strong> จากคุณ <strong>${escapeHtml(donation.name)}</strong> ได้รับการยืนยันเรียบร้อยแล้ว!<br>
+                ขอบคุณสำหรับการสนับสนุนสตรีมเมอร์ครับ ❤️
+            `;
+        }
+
+        function handleExpiration() {
+            alert("หมดเวลาทำรายการโอนเงิน รายการนี้จะถูกยกเลิก กรุณาสร้างรายการชำระเงินใหม่");
+            resetForm();
+        }
+
+        function cancelDonation() {
+            if (confirm("ต้องการยกเลิกรายการนี้หรือไม่?")) {
+                resetForm();
+            }
+        }
+
+        function resetForm() {
+            clearInterval(pollingInterval);
+            clearInterval(timerInterval);
+            activeDonationId = null;
+
+            // Reset forms
+            document.getElementById("donation-form").reset();
+            
+            // Show Form, hide others
+            document.getElementById("donation-card").style.display = "block";
+            document.getElementById("qr-card").style.display = "none";
+            document.getElementById("success-card").style.display = "none";
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        async function fetchStreamerConfig() {
+            try {
+                const res = await fetch(`${API_URL}/config`);
+                if (!res.ok) return;
+                const data = await res.json();
+
+                const titleEl = document.getElementById('header-streamer-title');
+                const subEl = document.getElementById('header-streamer-sub');
+
+                if (data.streamer_name && data.streamer_name.trim() !== '') {
+                    const name = escapeHtml(data.streamer_name.trim());
+                    if (titleEl) titleEl.innerHTML = `Support <span style="color: #a78bfa;">${name}</span>`;
+                    if (subEl) subEl.innerHTML = `สนับสนุน <strong style="color: #e2e8f0;">${name}</strong> ผ่านระบบ PromptPay QR Code`;
+                    document.title = `Donate - Support ${data.streamer_name}`;
+                }
+
+                if (data.minimum_donation) {
+                    const amountInput = document.getElementById('amount');
+                    if (amountInput) {
+                        amountInput.min = 1;
+                        amountInput.placeholder = "100";
+                    }
+                }
+            } catch(e) {
+                console.error("Failed to load streamer config:", e);
+            }
+        }
+        fetchStreamerConfig();
+    </script>
+</body>
+</html>

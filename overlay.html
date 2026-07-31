@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Donation Overlay</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch&family=Itim&family=Kanit&family=Mali&family=Mitr&family=Prompt:wght@400;600;700&family=Sarabun&display=swap" rel="stylesheet">
+    <style>
+        .alert-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        .alert-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .alert-media-img {
+            max-width: 180px;
+            max-height: 180px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+
+        .alert-card-standalone {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 16px 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            min-width: 280px;
+            max-width: 500px;
+        }
+
+    </style>
+</head>
+<body class="obs-body">
+    
+    <!-- Outer Alert Container -->
+    <div class="alert-container" id="alert-container">
+        <!-- Image / GIF (Freed from card box) -->
+        <img id="alert-img" class="alert-media-img" src="https://media.giphy.com/media/l41xGQ0rQz8y8dK4E/giphy.gif">
+        
+        <!-- Standalone Text Card -->
+        <div class="alert-card-standalone" id="alert-box">
+            <div class="alert-header-text" id="alert-header">
+                <span id="alert-name">ชื่อผู้สนับสนุน</span> <span id="alert-amount-val" style="color: #34d399;">฿100</span>
+            </div>
+            <div class="alert-message" id="alert-message" style="margin-top: 6px;">ข้อความให้กำลังใจ</div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        const API_URL = window.location.origin && window.location.origin.startsWith("http") 
+            ? window.location.origin + "/api" 
+            : "http://localhost:5000/api";
+
+        const alertContainer = document.getElementById("alert-container");
+        const alertHeader = document.getElementById("alert-header");
+        const alertMessage = document.getElementById("alert-message");
+        const alertImg = document.getElementById("alert-img");
+
+        let audioUnlocked = false;
+        function unlockAudio() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    const ctx = new AudioContext();
+                    if (ctx.state === 'suspended') ctx.resume();
+                }
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.resume();
+                }
+                audioUnlocked = true;
+                const hint = document.getElementById('click-hint');
+                if (hint) {
+                    hint.textContent = "✅ เปิดเสียงเรียบร้อยแล้ว";
+                    setTimeout(() => hint.style.display = 'none', 2000);
+                }
+            } catch(e) {}
+        }
+        document.body.addEventListener('click', unlockAudio, { once: true });
+
+        let alertConfig = {
+            template_text: "{name} สนับสนุน {amount} บาท!",
+            color_name: "#fbbf24",
+            color_amount: "#34d399",
+            color_message: "#ffffff",
+            image_url: "https://media.giphy.com/media/l41xGQ0rQz8y8dK4E/giphy.gif",
+            image_position: "top",
+            font_family: "Prompt",
+            font_size: 32,
+            duration: 6,
+            sound_volume: 80,
+            enable_tts: true,
+            min_display: 0.0,
+            min_tts: 10.0
+        };
+
+        // Load Alert Config from Backend
+        async function fetchConfig() {
+            try {
+                const res = await fetch(`${API_URL}/admin/config?token=${encodeURIComponent(token)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.alert_config) {
+                    alertConfig = { ...alertConfig, ...data.alert_config };
+                }
+            } catch(e) {
+                console.error("Failed to load alert config:", e);
+            }
+        }
+        fetchConfig();
+
+        // Alert Queue System
+        const alertQueue = [];
+        let isAlertPlaying = false;
+
+        const audioCtxCache = {};
+        
+        async function playAlertSound(soundUrl, vol = 80) {
+            if (!soundUrl || soundUrl === 'none') return 0;
+            const volume = (vol / 100);
+
+            // 1. Try Web Audio API Buffer Player (Bypasses browser HTML5 audio autoplay restrictions!)
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    if (!window.globalAudioCtx) {
+                        window.globalAudioCtx = new AudioContext();
+                    }
+                    const ctx = window.globalAudioCtx;
+                    if (ctx.state === 'suspended') {
+                        await ctx.resume();
+                    }
+
+                    if (!audioCtxCache[soundUrl]) {
+                        const response = await fetch(soundUrl);
+                        const arrayBuffer = await response.arrayBuffer();
+                        audioCtxCache[soundUrl] = await ctx.decodeAudioData(arrayBuffer);
+                    }
+
+                    const audioBuffer = audioCtxCache[soundUrl];
+                    const source = ctx.createBufferSource();
+                    const gainNode = ctx.createGain();
+
+                    source.buffer = audioBuffer;
+                    gainNode.gain.value = volume;
+
+                    source.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    source.start(0);
+
+                    const durationMs = (audioBuffer.duration && audioBuffer.duration > 0) ? (audioBuffer.duration * 1000) : 1500;
+                    return durationMs;
+                }
+            } catch(e) {
+                console.warn("WebAudio buffer decode failed, trying HTML5 Audio fallback:", e);
+            }
+
+            // 2. HTML5 Audio Fallback
+            return new Promise((resolve) => {
+                try {
+                    const audio = new Audio(soundUrl);
+                    audio.volume = volume;
+                    let resolved = false;
+
+                    const finish = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            const dur = (audio.duration && !isNaN(audio.duration)) ? audio.duration * 1000 : 1500;
+                            resolve(dur);
+                        }
+                    };
+
+                    audio.onended = finish;
+                    audio.onerror = () => {
+                        if (!resolved) {
+                            resolved = true;
+                            resolve(1500);
+                        }
+                    };
+
+                    audio.play().then(() => {
+                        setTimeout(finish, (audio.duration && !isNaN(audio.duration)) ? audio.duration * 1000 : 2000);
+                    }).catch(err => {
+                        console.warn("Audio element play failed, falling back to synth:", err);
+                        playSynthChime(volume);
+                        resolve(2000);
+                    });
+                } catch(e) {
+                    playSynthChime(volume);
+                    resolve(2000);
+                }
+            });
+        }
+
+        function playSynthChime(volume = 0.12) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                if (ctx.state === 'suspended') ctx.resume();
+
+                const now = ctx.currentTime;
+                const chord = [523.25, 659.25, 783.99, 1046.50];
+                
+                chord.forEach((freq, index) => {
+                    const osc = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+                    const startTime = now + (index * 0.08);
+                    
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(volume * 0.15, startTime + 0.04);
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + 1.8);
+                    
+                    osc.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 2.2);
+                });
+            } catch (e) {
+                console.error("Failed to play Web Audio chime:", e);
+            }
+        }
+
+        async function speakTTS(text, vol = 80, voice = null) {
+            if (!text) return;
+            let targetVoice = voice || (alertConfig && alertConfig.tts_voice) || 'th-TH-PremwadeeNeural';
+            if (!targetVoice || targetVoice === 'default') targetVoice = 'th-TH-PremwadeeNeural';
+            try {
+                const res = await fetch(`/api/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(targetVoice)}`);
+                if (!res.ok) throw new Error("Edge TTS API error");
+                const data = await res.json();
+                if (data.success && data.audio_url) {
+                    const audio = new Audio(data.audio_url);
+                    audio.volume = Math.min(1.0, Math.max(0.0, vol / 100));
+                    audio.play().catch(e => console.error("Edge TTS audio play error:", e));
+                    return;
+                }
+            } catch(e) {
+                console.error("Edge TTS error, falling back to Web Speech:", e);
+            }
+
+            // Fallback to Browser Web Speech API
+            if ('speechSynthesis' in window) {
+                try {
+                    window.speechSynthesis.cancel();
+                    window.speechSynthesis.resume();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = "th-TH";
+                    utterance.rate = 1.0;
+                    utterance.volume = vol / 100;
+                    window.speechSynthesis.speak(utterance);
+                } catch(e) {
+                    console.error("Web Speech fallback error:", e);
+                }
+            }
+        }
+
+        // Trigger Alert Animation
+        async function playAlert(data) {
+            const amount = Number(data.amount) || 0;
+
+            // Check min display threshold
+            if (amount < alertConfig.min_display) {
+                isAlertPlaying = false;
+                processQueue();
+                return;
+            }
+
+            // Image Position & Visibility
+            const pos = alertConfig.image_position || "top";
+            if (pos === "none" || !alertConfig.image_url) {
+                alertImg.style.display = "none";
+            } else {
+                alertImg.style.display = "block";
+                alertImg.src = alertConfig.image_url;
+                if (pos === "top") {
+                    alertContainer.style.flexDirection = "column";
+                } else if (pos === "bottom") {
+                    alertContainer.style.flexDirection = "column-reverse";
+                } else if (pos === "left") {
+                    alertContainer.style.flexDirection = "row";
+                }
+            }
+
+            // Apply Styles & Fonts
+            alertHeader.style.fontFamily = `'${alertConfig.font_family || "Prompt"}', sans-serif`;
+            alertHeader.style.fontSize = `${alertConfig.font_size || 32}px`;
+            alertHeader.style.color = alertConfig.color_name || "#fbbf24";
+            
+            alertMessage.style.fontFamily = `'${alertConfig.font_family || "Prompt"}', sans-serif`;
+            alertMessage.style.color = alertConfig.color_message || "#ffffff";
+
+            // Format Header Text
+            let template = alertConfig.template_text || "{name} สนับสนุน {amount} บาท!";
+            let amountText = amount.toLocaleString('th-TH', {minimumFractionDigits: 0});
+            let formattedAmountSpan = `<span style="color:${alertConfig.color_amount || '#34d399'};">฿${amountText}</span>`;
+            let text = template.replace('{name}', data.name).replace('{amount}', formattedAmountSpan);
+            text = text.replace(`฿${formattedAmountSpan}`, formattedAmountSpan);
+            
+            alertHeader.innerHTML = text;
+            
+            if (data.message && data.message.trim() !== "") {
+                alertMessage.textContent = `“ ${data.message} ”`;
+                alertMessage.style.display = "block";
+            } else {
+                alertMessage.style.display = "none";
+            }
+
+            // Play Sound & get duration
+            const soundDurationMs = await playAlertSound(alertConfig.sound_effect, alertConfig.sound_volume);
+
+            // Play TTS AFTER sound finishes + 1 second delay (1000ms)
+            const minTts = parseFloat(alertConfig.min_tts) || 0;
+            if (alertConfig.enable_tts && amount >= minTts) {
+                const ttsDelayMs = (soundDurationMs > 0) ? (soundDurationMs + 1000) : 500;
+                setTimeout(() => {
+                    let speechText = `${data.name} ได้สนับสนุน ${amount} บาท`;
+                    if (data.message) speechText += ` ข้อความคือ ${data.message}`;
+                    speakTTS(speechText, alertConfig.sound_volume, alertConfig.tts_voice || 'th-TH-PremwadeeNeural');
+                }, ttsDelayMs);
+            }
+
+            // Show Alert Container
+            alertContainer.classList.add("show");
+
+            // Duration in MS
+            const displayTime = (alertConfig.duration || 6) * 1000;
+
+            setTimeout(() => {
+                alertContainer.classList.remove("show");
+                setTimeout(() => {
+                    isAlertPlaying = false;
+                    processQueue();
+                }, 500);
+            }, displayTime);
+        }
+
+        function queueAlert(data) {
+            alertQueue.push(data);
+            processQueue();
+        }
+
+        async function processQueue() {
+            if (isAlertPlaying || alertQueue.length === 0) return;
+            isAlertPlaying = true;
+            await fetchConfig();
+            const nextAlert = alertQueue.shift();
+            playAlert(nextAlert);
+        }
+
+        // Connect to SSE (Server-Sent Events) from Flask backend
+        function connectAlertStream() {
+            if (!token) {
+                console.error("Token missing for SSE stream.");
+                return;
+            }
+            console.log("Connecting SSE stream to backend...");
+            const sse = new EventSource(`${API_URL}/stream?token=${encodeURIComponent(token)}`);
+
+            sse.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.status === "connected") {
+                    console.log("SSE Stream connected cleanly!");
+                    return;
+                }
+                
+                // Refresh config on new alert in case streamer modified settings
+                fetchConfig().then(() => {
+                    queueAlert(data);
+                });
+            };
+
+            sse.onerror = function(err) {
+                console.error("SSE connection error. Reconnecting...", err);
+                sse.close();
+                setTimeout(connectAlertStream, 3000);
+            };
+        }
+
+        // Start SSE Connection
+        connectAlertStream();
+    </script>
+</body>
+</html>

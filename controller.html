@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeloxDonate - Controller Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch&family=Inter:wght@400;600;700&family=Itim&family=Kanit:wght@400;600;700&family=Mali&family=Mitr&family=Prompt:wght@400;600;700&family=Sarabun&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/controller.css">
+</head>
+<body>
+
+    <!-- Floating Action Buttons -->
+    <div class="floating-action-bar">
+        <button class="floating-btn" style="border-color: rgba(168, 85, 247, 0.4); color: #c084fc; margin-bottom: 8px;" onclick="openGuideModal()">
+            <i class="fa-solid fa-book-open" style="color: #c084fc;"></i> คู่มือย่อลิงก์ (TinyURL)
+        </button>
+        <button class="floating-btn" onclick="openDonatePage()">
+            <i class="fa-solid fa-heart" style="color: #ec4899;"></i> หน้า Donate
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fa-solid fa-gamepad"></i> VeloxDonate Controller</h1>
+            <p>แผงควบคุมระบบรับโดเนทสำหรับสตรีมเมอร์</p>
+        </div>
+
+        <!-- Top Status Banner Card (Cloudflare & VeloxGG Status) -->
+        <div class="card" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(168, 85, 247, 0.25); margin-bottom: 25px; padding: 18px 22px;">
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                
+                <!-- Row 1: Cloudflare Status -->
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(249, 115, 22, 0.15); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #f97316;">
+                            <i class="fa-brands fa-cloudflare"></i>
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: #f8fafc;">Cloudflare Status</h4>
+                                <span id="tunnel-status-badge" style="background: rgba(234, 179, 8, 0.2); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.4); padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+                                    🟡 กำลังเชื่อมต่ออุโมงค์...
+                                </span>
+                            </div>
+                            <p style="color: #94a3b8; font-size: 0.8rem; margin-top: 2px; margin-bottom: 0;">
+                                สถานะอุโมงค์ส่งสัญญาณนิรภัยตรงเข้าคอมพิวเตอร์สตรีมเมอร์เรียลไทม์
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Quick Action Icon Buttons for Cloudflare Tunnel -->
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button class="btn" title="คัดลอกลิงก์ Cloudflare Quick Tunnel" style="padding: 7px 12px; background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); font-size: 0.85rem;" onclick="copyPublicDonateUrl()">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                        <button class="btn" title="เปิดหน้าเว็บรับโดเนท" style="padding: 7px 12px; background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.15); font-size: 0.85rem;" onclick="openPublicDonateUrl()">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Row 2: VeloxGG Status -->
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(168, 85, 247, 0.15); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #c084fc;">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: #f8fafc;">VeloxGG Status</h4>
+                                <span id="velox-status-badge" style="background: rgba(255, 255, 255, 0.08); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.15); padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+                                    ⚪ ไม่ได้เปิดใช้งาน VeloxGG Mode
+                                </span>
+                            </div>
+                            <p style="color: #94a3b8; font-size: 0.8rem; margin-top: 2px; margin-bottom: 0;">
+                                สถานะการซิงค์ลิงก์ประจำช่องถาวร (donate.veloxgg.com)
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Quick Action Icon Buttons for VeloxGG Hub -->
+                    <div id="velox-top-action-btns" style="display: flex; gap: 8px; align-items: center;">
+                        <button class="btn" title="คัดลอกลิงก์ประจำช่อง VeloxGG" style="padding: 7px 12px; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); font-size: 0.85rem;" onclick="copyVeloxUrlTop()">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                        <button class="btn" title="เปิดหน้าเว็บ VeloxGG Donate" style="padding: 7px 12px; background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.15); font-size: 0.85rem;" onclick="openVeloxUrlTop()">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab-btn active" id="btn-tab-interceptor" onclick="switchTab('interceptor')">
+                <i class="fa-solid fa-desktop"></i> LINE Interceptor
+            </button>
+            <button class="nav-tab-btn" id="btn-tab-widgets" onclick="switchTab('widgets')">
+                <i class="fa-solid fa-layer-group"></i> Widgets & Alerts
+            </button>
+            <button class="nav-tab-btn" id="btn-tab-setting" onclick="switchTab('setting')">
+                <i class="fa-solid fa-gear"></i> Setting (ตั้งค่าระบบ)
+            </button>
+            <button class="nav-tab-btn" id="btn-tab-history" onclick="switchTab('history')">
+                <i class="fa-solid fa-database"></i> ประวัติการโดเนท (Database)
+            </button>
+            <button class="nav-tab-btn" id="btn-tab-network" onclick="switchTab('network')">
+                <i class="fa-solid fa-network-wired"></i> Network Setting (ตั้งค่าเครือข่าย)
+            </button>
+        </div>
+
+        <!-- TAB 1: LINE Interceptor -->
+        <div id="tab-interceptor" class="tab-content active">
+            <!-- 1. Interceptor Settings -->
+            <div class="card">
+                <h2 class="card-title"><i class="fa-solid fa-desktop"></i> ตั้งค่าสายลับดักเงิน (LINE Interceptor)</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -5px; margin-bottom: 20px;">
+                    เลือกว่าจะให้ระบบดึงแชทสลิปโอนเงินมาจากหน้าต่างไหนของโปรแกรม LINE ในเครื่อง
+                </p>
+                
+                <div class="row">
+                    <div class="col" style="flex: 2;">
+                        <div class="form-group">
+                            <label>เลือกหน้าต่างจากรายการ (Window List)</label>
+                            <select class="form-control" id="window-select" onchange="if(this.value) document.getElementById('cfg-line-window-title').value = this.value;">
+                                <option value="">-- ปล่อยว่างเพื่อค้นหา ChatWindow อัตโนมัติ --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col" style="flex: 2;">
+                        <div class="form-group">
+                            <label>หรือพิมพ์ระบุชื่อหน้าต่างเอง (Custom Title)</label>
+                            <input type="text" class="form-control" id="cfg-line-window-title" placeholder="เช่น LINE หรือ ChatWindow">
+                        </div>
+                    </div>
+                    <div class="col" style="flex: 1; display: flex; align-items: flex-end; padding-bottom: 20px;">
+                        <button class="btn btn-block" onclick="loadWindows()"><i class="fa-solid fa-rotate-right"></i> รีเฟรช</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-block" style="padding: 15px; font-size: 1.05rem; background: var(--primary);" onclick="testOCR()" id="btn-test-ocr">
+                    <i class="fa-solid fa-eye"></i> ทดสอบอ่านข้อความล่าสุด
+                </button>
+
+                <!-- Disclaimer Note -->
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 15px; background: rgba(255, 255, 255, 0.03); padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); line-height: 1.5;">
+                    <i class="fa-solid fa-circle-info" style="color: #60a5fa;"></i> <strong>คำแนะนำ:</strong> การถอดข้อความด้วยเทคโนโลยี OCR ภาษาไทยอาจมีตัวอักษรคลาดเคลื่อนเล็กน้อย (เช่น คำว่า 'เงิน' อ่านได้เป็น 'เง็น') แต่อยู่ในระดับที่สามารถดึงยอดเงินและตรวจสอบรายการโอนจาก LINE PC ได้อย่างมีประสิทธิภาพครับ
+                </p>
+
+                <!-- Match Result -->
+                <div id="test-result" style="display: none;"></div>
+
+                <!-- Raw OCR Result -->
+                <div class="ocr-result" id="ocr-result"></div>
+            </div>
+
+            <!-- 2. Regex Formats (Accordion) -->
+            <div class="card" style="padding: 0; overflow: hidden; margin-top: 25px;">
+                <div onclick="toggleAccordion()" style="padding: 25px 30px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+                    <div>
+                        <h2 class="card-title" style="margin: 0; border: none; padding: 0;">
+                            <i class="fa-solid fa-sliders"></i> ตั้งค่ารูปแบบข้อความโอนเงิน (สำหรับผู้ใช้ขั้นสูง)
+                        </h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px; margin-bottom: 0;">
+                            คลิกเพื่อเปิด/ซ่อน เมนูจัดการสูตร Regex ของแต่ละธนาคาร
+                        </p>
+                    </div>
+                    <i class="fa-solid fa-chevron-down" id="accordion-icon" style="font-size: 1.2rem; color: var(--text-muted); transition: transform 0.3s ease;"></i>
+                </div>
+
+                <div id="accordion-content" style="display: none; padding: 0 30px 30px 30px; border-top: 1px solid var(--glass-border);">
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 20px; margin-bottom: 20px;">
+                        กำหนดรูปแบบ Regex สำหรับดึงยอดเงินจากแต่ละธนาคาร ระบบจะดึงตัวเลขในวงเล็บ <code>()</code> มาใช้
+                    </p>
+                    
+                    <div id="regex-list">
+                        <!-- JS will populate -->
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <button class="btn" style="background: rgba(255,255,255,0.1);" onclick="addRegexFormat()">
+                            <i class="fa-solid fa-plus"></i> เพิ่มรูปแบบใหม่
+                        </button>
+                        <button class="btn btn-success" onclick="saveConfig()">
+                            <i class="fa-solid fa-floppy-disk"></i> บันทึกรูปแบบข้อความ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Widgets & Alerts -->
+        <div id="tab-widgets" class="tab-content">
+            <div class="card">
+                <h2 class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> ศูนย์รวม Widget สำหรับ OBS</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -5px; margin-bottom: 20px;">
+                    จัดการคัดลอก URL ลิงก์ตรงแยกรายอันไปใส่ใน Browser Source ของโปรแกรม OBS Studio ได้อย่างอิสระ
+                </p>
+
+                <!-- Sub-tabs Navigation -->
+                <div class="sub-nav-tabs" style="display: flex; gap: 10px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button class="btn sub-tab-btn active" id="btn-subtab-alert" style="background: rgba(167, 139, 250, 0.15); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.3);" onclick="switchSubTab('alert')">
+                        <i class="fa-solid fa-bell"></i> Alert Box
+                    </button>
+                    <button class="btn sub-tab-btn" id="btn-subtab-top" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted);" onclick="switchSubTab('top')">
+                        <i class="fa-solid fa-trophy"></i> Top Donator
+                    </button>
+                    <button class="btn sub-tab-btn" id="btn-subtab-recent" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted);" onclick="switchSubTab('recent')">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Donate ล่าสุด
+                    </button>
+                    <button class="btn sub-tab-btn" id="btn-subtab-goal" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted);" onclick="switchSubTab('goal')">
+                        <i class="fa-solid fa-bullseye"></i> Donate Goal
+                    </button>
+                </div>
+
+                <!-- Sub-tab 1: Alert Box -->
+                <div id="subtab-alert" class="subtab-content active">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label>URL สำหรับ OBS Browser Source (ป๊อปอัปเด้งเงินโอน):</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-control" id="url-widget-alert" readonly style="font-family: monospace; color: #a78bfa; background: rgba(0,0,0,0.3);">
+                            <button class="btn" style="background: rgba(167, 139, 250, 0.2); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.4); white-space: nowrap;" onclick="copyWidgetUrl('url-widget-alert')">
+                                <i class="fa-solid fa-copy"></i> คัดลอกลิงก์
+                            </button>
+                            <button class="btn" style="background: rgba(255,255,255,0.1); white-space: nowrap;" onclick="openWidgetPreview('alert')">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> ดูตัวอย่าง (เปิดแท็บใหม่)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 1. Embedded Live Alert Preview Container -->
+                    <div style="background: #111827; border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 30px; margin-bottom: 25px; text-align: center; position: relative; min-height: 250px; display: flex; align-items: center; justify-content: center; overflow: hidden;" id="alert-preview-stage">
+                        <div style="position: absolute; top: 12px; left: 15px; font-size: 0.75rem; color: #9ca3af; background: rgba(0,0,0,0.5); padding: 3px 10px; border-radius: 20px;">
+                            <i class="fa-solid fa-eye"></i> ตัวอย่าง Alert (Live Preview)
+                        </div>
+
+                        <!-- Outer Container for Image Position (Top, Left, Bottom, None) -->
+                        <div id="preview-outer-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; transition: all 0.3s ease;">
+                            <!-- Image / GIF (Freed from inside card box!) -->
+                            <img id="preview-img" src="https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif" style="max-width: 120px; max-height: 120px; object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));">
+                            
+                            <!-- Standalone Text Card Box -->
+                            <div id="preview-alert-box" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 16px 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: center; min-width: 250px; max-width: 450px; transition: all 0.3s ease;">
+                                <div id="preview-title-row" style="font-weight: 700; font-size: 32px; color: #fbbf24; font-family: 'Prompt', sans-serif;">
+                                    Test USER สนับสนุน <span id="preview-amount" style="color: #34d399;">฿5,000</span> บาท!
+                                </div>
+                                <div id="preview-msg-row" style="font-size: 0.95rem; color: #ffffff; margin-top: 6px; font-family: 'Prompt', sans-serif;">
+                                    ตัวอย่าง Donate Alert
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Rich Customization Controls Grid -->
+                    <div class="config-grid-2col">
+                        
+                        <!-- Panel A: สีและสื่อ (Colors & Media) -->
+                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px;">
+                            <h4 style="color: #c4b5fd; margin-bottom: 15px; font-size: 0.95rem;"><i class="fa-solid fa-palette"></i> สีและสื่อ (Colors & Media)</h4>
+                            
+                            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                                <div style="flex: 1;">
+                                    <label style="font-size: 0.8rem;">สีชื่อผู้สนับสนุน</label>
+                                    <input type="color" class="form-control" id="cfg-color-name" value="#fbbf24" style="height: 40px; padding: 2px; cursor: pointer;" oninput="updateLivePreview()">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label style="font-size: 0.8rem;">สียอดเงิน</label>
+                                    <input type="color" class="form-control" id="cfg-color-amount" value="#34d399" style="height: 40px; padding: 2px; cursor: pointer;" oninput="updateLivePreview()">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label style="font-size: 0.8rem;">สีข้อความ</label>
+                                    <input type="color" class="form-control" id="cfg-color-message" value="#ffffff" style="height: 40px; padding: 2px; cursor: pointer;" oninput="updateLivePreview()">
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                    <label style="font-size: 0.8rem; margin-bottom: 0;">รูปภาพ / GIF Alert</label>
+                                    <label for="file-upload-image" style="cursor: pointer; color: #c4b5fd; font-size: 0.75rem; background: rgba(167, 139, 250, 0.2); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(167, 139, 250, 0.4);">
+                                        <i class="fa-solid fa-upload"></i> อัปโหลดรูป/GIF เอง
+                                    </label>
+                                    <input type="file" id="file-upload-image" accept="image/*" style="display: none;" onchange="uploadSelectedMedia('image')">
+                                </div>
+                                <select class="form-control" id="cfg-image-select" onchange="onMediaSelectChange('image')">
+                                    <option value="">กำลังโหลดรายการรูปภาพ...</option>
+                                </select>
+                                <input type="hidden" id="cfg-image-url" value="/static/presets/images/gift_box.svg">
+                            </div>
+
+                            <div class="form-group">
+                                <label style="font-size: 0.8rem;">ตำแหน่งรูปภาพ (Image Position)</label>
+                                <select class="form-control" id="cfg-image-position" onchange="updateLivePreview()">
+                                    <option value="top">อยู่ด้านบนกล่องข้อความ (แนะนำ 🔝)</option>
+                                    <option value="left">อยู่ด้านซ้ายกล่องข้อความ 👈</option>
+                                    <option value="bottom">อยู่ด้านล่างกล่องข้อความ 🔻</option>
+                                    <option value="none">ไม่แสดงรูปภาพ (ข้อความล้วน) 🚫</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Panel B: ข้อความและฟอนต์ (Text & Fonts) -->
+                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px;">
+                            <h4 style="color: #c4b5fd; margin-bottom: 15px; font-size: 0.95rem;"><i class="fa-solid fa-font"></i> ข้อความและฟอนต์ (Text & Fonts)</h4>
+
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label style="font-size: 0.8rem;">ข้อความโอนเงิน (Template)</label>
+                                <input type="text" class="form-control" id="cfg-template-text" value="{name} สนับสนุน {amount} บาท!" oninput="updateLivePreview()">
+                                <small style="color: var(--text-muted); font-size: 0.75rem;">ใช้ {name} สำหรับชื่อ และ {amount} สำหรับยอดเงิน</small>
+                            </div>
+
+                            <div class="row" style="margin-bottom: 10px;">
+                                <div class="col">
+                                    <label style="font-size: 0.8rem;">ฟอนต์หัวข้อ/ข้อความ</label>
+                                    <select class="form-control" id="cfg-font-family" onchange="updateLivePreview()">
+                                        <option value="Prompt">Prompt</option>
+                                        <option value="Mitr">Mitr</option>
+                                        <option value="Kanit">Kanit</option>
+                                        <option value="Sarabun">Sarabun</option>
+                                        <option value="Itim">Itim</option>
+                                        <option value="Mali">Mali</option>
+                                        <option value="Chakra Petch">Chakra Petch</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label style="font-size: 0.8rem;">ขนาดฟอนต์: <span id="val-font-size">32</span>px</label>
+                                    <input type="range" min="16" max="72" value="32" class="form-control" id="cfg-font-size" oninput="document.getElementById('val-font-size').textContent=this.value; updateLivePreview();">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel C: อนิเมชันและเวลา (Animation & Duration) -->
+                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px;">
+                            <h4 style="color: #c4b5fd; margin-bottom: 15px; font-size: 0.95rem;"><i class="fa-solid fa-stopwatch"></i> เวลาและอนิเมชัน (Duration & Animations)</h4>
+
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label style="font-size: 0.8rem;">แสดงเป็นเวลา: <span id="val-duration">6</span> วินาที</label>
+                                <input type="range" min="1" max="30" value="6" class="form-control" id="cfg-duration" oninput="document.getElementById('val-duration').textContent=this.value">
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    <label style="font-size: 0.8rem;">Animation เข้า</label>
+                                    <select class="form-control" id="cfg-anim-in">
+                                        <option value="slideInDown">slideInDown (เลื่อนลง)</option>
+                                        <option value="fadeIn">fadeIn (จางเข้า)</option>
+                                        <option value="bounceIn">bounceIn (เด้งเข้า)</option>
+                                        <option value="zoomIn">zoomIn (ขยายเข้า)</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <label style="font-size: 0.8rem;">Animation ออก</label>
+                                    <select class="form-control" id="cfg-anim-out">
+                                        <option value="slideOutUp">slideOutUp (เลื่อนขึ้น)</option>
+                                        <option value="fadeOut">fadeOut (จางหาย)</option>
+                                        <option value="bounceOut">bounceOut (เด้งออก)</option>
+                                        <option value="zoomOut">zoomOut (ย่อหาย)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel D: เสียงเตือนและเสียงอ่าน (Sound & TTS) -->
+                        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px;">
+                            <h4 style="color: #c4b5fd; margin-bottom: 15px; font-size: 0.95rem;"><i class="fa-solid fa-volume-high"></i> เสียงเตือนและเสียงอ่าน (Sound & TTS)</h4>
+
+                            <div class="row" style="margin-bottom: 12px;">
+                                <div class="col">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <label style="font-size: 0.8rem; margin-bottom: 0;">เสียงเตือน</label>
+                                        <label for="file-upload-sound" style="cursor: pointer; color: #c4b5fd; font-size: 0.75rem; background: rgba(167, 139, 250, 0.2); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(167, 139, 250, 0.4);">
+                                            <i class="fa-solid fa-upload"></i> อัปโหลดเสียงเอง
+                                        </label>
+                                        <input type="file" id="file-upload-sound" accept="audio/*" style="display: none;" onchange="uploadSelectedMedia('sound')">
+                                    </div>
+                                    <div style="display: flex; gap: 6px;">
+                                        <select class="form-control" id="cfg-sound-select" onchange="onMediaSelectChange('sound')">
+                                            <option value="">กำลังโหลดรายการเสียง...</option>
+                                        </select>
+                                        <button class="btn" style="padding: 4px 12px; background: rgba(255,255,255,0.1); white-space: nowrap;" onclick="playSelectedSoundPreview()" title="ทดลองฟังเสียง">
+                                            <i class="fa-solid fa-play"></i>
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="cfg-sound-effect" value="/static/presets/sounds/chime.wav">
+                                </div>
+                                <div class="col">
+                                    <label style="font-size: 0.8rem;">ระดับเสียง: <span id="val-volume">80</span>%</label>
+                                    <input type="range" min="0" max="100" value="80" class="form-control" id="cfg-sound-volume" oninput="document.getElementById('val-volume').textContent=this.value">
+                                </div>
+                            </div>
+
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
+                                <label style="font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="cfg-enable-tts" checked> เปิดเสียงอ่านข้อความ (TTS AI ภาษาไทย)
+                                </label>
+                                <button class="btn" style="padding: 4px 12px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.2); color: #60a5fa;" onclick="testTTSVoice()">
+                                    <i class="fa-solid fa-volume-high"></i> ทดสอบอ่านเสียง AI
+                                </button>
+                            </div>
+
+                            <div style="margin-top: 12px;">
+                                <label style="font-size: 0.8rem;">เสียงอ่าน AI (Microsoft Edge Neural Voice)</label>
+                                <select class="form-control" id="cfg-tts-voice">
+                                    <option value="th-TH-PremwadeeNeural">👧 น้องเปรมวดี (เสียงผู้หญิง - หวานนุ่มนวล)</option>
+                                    <option value="th-TH-NiwatNeural">👨 คุณนิวัตน์ (เสียงผู้ชาย - สุภาพกึ่งทางการ)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 3. Action Buttons -->
+                    <div style="display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
+                        <button class="btn" style="padding: 12px 20px; background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);" onclick="triggerTestAlert(false)" title="ทดสอบเฉพาะภาพและเสียงบน OBS (ไม่บันทึกลงฐานข้อมูล)">
+                            <i class="fa-solid fa-bell"></i> 🔔 ทดสอบการแจ้งเตือน (ไม่ลง DB)
+                        </button>
+                        <button class="btn" style="padding: 12px 20px; background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4);" onclick="triggerTestAlert(true)" title="ทดสอบส่งสัญญาณเต็มระบบ และบันทึกประวัติลงฐานข้อมูล">
+                            <i class="fa-solid fa-vial"></i> 🧪 ทดสอบสลิปจำลอง (ลง DB)
+                        </button>
+                        <button class="btn btn-success" style="padding: 12px 25px;" onclick="saveAlertConfig()">
+                            <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่า Alert
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sub-tab 2: Top Donator -->
+                <div id="subtab-top" class="subtab-content" style="display: none;">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label>URL สำหรับ OBS Browser Source (ตารางจัดอันดับสายเปย์ Top Donator):</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-control" id="url-widget-top" readonly style="font-family: monospace; color: #fbbf24; background: rgba(0,0,0,0.3);">
+                            <button class="btn" style="background: rgba(251, 191, 36, 0.2); color: #fde047; border: 1px solid rgba(251, 191, 36, 0.4); white-space: nowrap;" onclick="copyWidgetUrl('url-widget-top')">
+                                <i class="fa-solid fa-copy"></i> คัดลอกลิงก์
+                            </button>
+                            <button class="btn" style="background: rgba(255,255,255,0.1); white-space: nowrap;" onclick="openWidgetPreview('top')">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> ดูตัวอย่าง (เปิดแท็บใหม่)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 1. Embedded Live Top Donator Preview Container -->
+                    <div style="background: #111827; border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 25px; margin-bottom: 25px; position: relative; min-height: 140px; display: flex; align-items: center; justify-content: center; overflow: hidden;" id="top-preview-stage">
+                        <div style="position: absolute; top: 10px; left: 15px; font-size: 0.75rem; color: #9ca3af; background: rgba(0,0,0,0.5); padding: 3px 10px; border-radius: 20px;">
+                            <i class="fa-solid fa-eye"></i> ตัวอย่าง Top Donator (Live Preview)
+                        </div>
+
+                        <!-- Standalone Top Donator Display Box -->
+                        <div id="top-preview-box" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 16px 28px; width: 100%; max-width: 600px; display: flex; align-items: center; justify-content: space-between; gap: 15px; transition: all 0.2s ease;">
+                            <div id="top-preview-name" style="font-weight: 700; font-size: 28px; color: #ffffff; font-family: 'Prompt', sans-serif;">
+                                ชื่อ Top Donator
+                            </div>
+                            <div id="top-preview-amount" style="font-weight: 700; font-size: 28px; color: #fbbf24; font-family: 'Prompt', sans-serif;">
+                                ฿5,000
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Controls Grid -->
+                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        
+                        <!-- Row 1: วันที่เริ่มนับ -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 0.85rem; font-weight: 600;">📅 วันที่เริ่มนับ (Start Date Filter)</label>
+                            <input type="date" class="form-control" id="top-cfg-start-date" onchange="updateTopPreview()" style="max-width: 350px;">
+                            <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">ปล่อยว่างไว้หากต้องการนับรวมยอดบริจาคทั้งหมดตลอดกาล (All-Time Top Donator)</small>
+                        </div>
+
+                        <!-- Row 2: สีชื่อ & สีจำนวนเงิน -->
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🎨 สีชื่อ</label>
+                                <input type="color" class="form-control" id="top-cfg-color-name" value="#ffffff" style="height: 40px; padding: 2px; cursor: pointer;" oninput="updateTopPreview()">
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🎨 สีจำนวนเงิน</label>
+                                <input type="color" class="form-control" id="top-cfg-color-amount" value="#fbbf24" style="height: 40px; padding: 2px; cursor: pointer;" oninput="updateTopPreview()">
+                            </div>
+                        </div>
+
+                        <!-- Row 3: ฟอนต์ชื่อ & ฟอนต์จำนวนเงิน -->
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🔤 ฟอนต์ชื่อ</label>
+                                <select class="form-control" id="top-cfg-font-name" onchange="updateTopPreview()">
+                                    <option value="Prompt">Prompt</option>
+                                    <option value="Mitr">Mitr</option>
+                                    <option value="Kanit">Kanit</option>
+                                    <option value="Sarabun">Sarabun</option>
+                                    <option value="Itim">Itim</option>
+                                    <option value="Mali">Mali</option>
+                                    <option value="Chakra Petch">Chakra Petch</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🔤 ฟอนต์จำนวนเงิน</label>
+                                <select class="form-control" id="top-cfg-font-amount" onchange="updateTopPreview()">
+                                    <option value="Prompt">Prompt</option>
+                                    <option value="Mitr">Mitr</option>
+                                    <option value="Kanit">Kanit</option>
+                                    <option value="Sarabun">Sarabun</option>
+                                    <option value="Itim">Itim</option>
+                                    <option value="Mali">Mali</option>
+                                    <option value="Chakra Petch">Chakra Petch</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: ขนาดฟอนต์ชื่อ & ขนาดฟอนต์จำนวนเงิน -->
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">📏 ขนาดฟอนต์ชื่อ: <span id="val-top-font-size-name">28</span>px</label>
+                                <input type="range" min="10" max="194" value="28" class="form-control" id="top-cfg-font-size-name" oninput="document.getElementById('val-top-font-size-name').textContent=this.value; updateTopPreview();">
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">📏 ขนาดฟอนต์จำนวนเงิน: <span id="val-top-font-size-amount">28</span>px</label>
+                                <input type="range" min="10" max="194" value="28" class="form-control" id="top-cfg-font-size-amount" oninput="document.getElementById('val-top-font-size-amount').textContent=this.value; updateTopPreview();">
+                            </div>
+                        </div>
+
+                        <!-- Row 5: ระยะห่างระหว่างชื่อและจำนวนเงิน (Item Gap) -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 0.85rem; font-weight: 600;">↔️ ระยะห่างระหว่างชื่อและจำนวนเงิน (Item Gap): <span id="val-top-item-gap">15</span>px</label>
+                            <input type="range" min="0" max="250" value="15" class="form-control" id="top-cfg-item-gap" oninput="document.getElementById('val-top-item-gap').textContent=this.value; updateTopPreview();">
+                        </div>
+
+                        <!-- Row 5: การจัดวาง (Layout Order & Alignment) -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; display: block;">📐 การจัดวาง (Layout Alignment)</label>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                                <label style="cursor: pointer; background: rgba(255,255,255,0.05); border: 2px solid transparent; border-radius: 10px; padding: 12px; text-align: center; transition: all 0.2s ease;" class="layout-card" id="card-layout-name_first">
+                                    <input type="radio" name="top-layout-mode" value="name_first" checked onchange="updateTopPreview()" style="display: none;">
+                                    <div style="display: flex; justify-content: center; gap: 6px; font-size: 0.85rem; margin-bottom: 6px;">
+                                        <span style="background: #3b82f6; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">ชื่อ</span>
+                                        <span style="background: #fbbf24; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold;">จำนวนเงิน</span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">แนวนอน (ชื่อซ้าย)</div>
+                                </label>
+
+                                <label style="cursor: pointer; background: rgba(255,255,255,0.05); border: 2px solid transparent; border-radius: 10px; padding: 12px; text-align: center; transition: all 0.2s ease;" class="layout-card" id="card-layout-amount_first">
+                                    <input type="radio" name="top-layout-mode" value="amount_first" onchange="updateTopPreview()" style="display: none;">
+                                    <div style="display: flex; justify-content: center; gap: 6px; font-size: 0.85rem; margin-bottom: 6px;">
+                                        <span style="background: #fbbf24; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold;">จำนวนเงิน</span>
+                                        <span style="background: #3b82f6; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">ชื่อ</span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">แนวนอน (เงินซ้าย)</div>
+                                </label>
+
+                                <label style="cursor: pointer; background: rgba(255,255,255,0.05); border: 2px solid transparent; border-radius: 10px; padding: 12px; text-align: center; transition: all 0.2s ease;" class="layout-card" id="card-layout-name_top">
+                                    <input type="radio" name="top-layout-mode" value="name_top" onchange="updateTopPreview()" style="display: none;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.8rem; margin-bottom: 6px;">
+                                        <span style="background: #3b82f6; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold;">ชื่อ</span>
+                                        <span style="background: #fbbf24; color: #000; padding: 2px 8px; border-radius: 4px; font-weight: bold;">จำนวนเงิน</span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">แนวตั้ง (ชื่อบน)</div>
+                                </label>
+
+                                <label style="cursor: pointer; background: rgba(255,255,255,0.05); border: 2px solid transparent; border-radius: 10px; padding: 12px; text-align: center; transition: all 0.2s ease;" class="layout-card" id="card-layout-amount_top">
+                                    <input type="radio" name="top-layout-mode" value="amount_top" onchange="updateTopPreview()" style="display: none;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.8rem; margin-bottom: 6px;">
+                                        <span style="background: #fbbf24; color: #000; padding: 2px 8px; border-radius: 4px; font-weight: bold;">จำนวนเงิน</span>
+                                        <span style="background: #3b82f6; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold;">ชื่อ</span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">แนวตั้ง (เงินบน)</div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Row 6: กรองคำหยาบ & จำนวนอันดับ -->
+                        <div class="row">
+                            <div class="col">
+                                <label style="font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <input type="checkbox" id="top-cfg-filter-badwords" checked> กรองคำหยาบ (Filter Badwords)
+                                </label>
+                                <input type="text" class="form-control" id="top-cfg-custom-badwords" placeholder="คำหยาบเพิ่มเติม (แยกด้วยเครื่องหมาย , )">
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">จำนวนอันดับที่จะแสดงใน Widget</label>
+                                <select class="form-control" id="top-cfg-limit">
+                                    <option value="1">แสดงเฉพาะอันดับ 1 (Top 1 Single Banner)</option>
+                                    <option value="3">แสดง 3 อันดับแรก (Top 3)</option>
+                                    <option value="5" selected>แสดง 5 อันดับแรก (Top 5)</option>
+                                    <option value="10">แสดง 10 อันดับแรก (Top 10)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 20px;">
+                        <button class="btn btn-success" style="padding: 12px 30px;" onclick="saveTopDonatorConfig()">
+                            <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่า Top Donator
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sub-tab 3: Recent Donator -->
+                <div id="subtab-recent" class="subtab-content" style="display: none;">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label>URL สำหรับ OBS Browser Source (แถบผู้สนับสนุนล่าสุด Recent Donator):</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-control" id="url-widget-recent" readonly style="font-family: monospace; color: #34d399; background: rgba(0,0,0,0.3);">
+                            <button class="btn" style="background: rgba(52, 211, 153, 0.2); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.4); white-space: nowrap;" onclick="copyWidgetUrl('url-widget-recent')">
+                                <i class="fa-solid fa-copy"></i> คัดลอกลิงก์
+                            </button>
+                            <button class="btn" style="background: rgba(255,255,255,0.1); white-space: nowrap;" onclick="openWidgetPreview('recent')">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> ดูตัวอย่าง (เปิดแท็บใหม่)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 1. Embedded Live Recent Donator Preview Container -->
+                    <div style="background: #111827; border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 25px; margin-bottom: 25px; position: relative; min-height: 140px; display: flex; align-items: center; justify-content: center; overflow: hidden;" id="recent-preview-stage">
+                        <div style="position: absolute; top: 10px; left: 15px; font-size: 0.75rem; color: #9ca3af; background: rgba(0,0,0,0.5); padding: 3px 10px; border-radius: 20px;">
+                            <i class="fa-solid fa-eye"></i> ตัวอย่าง Recent Donator (Live Preview)
+                        </div>
+
+                        <!-- Standalone Recent Donator Display Box -->
+                        <div id="recent-preview-box" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 16px 28px; width: 100%; max-width: 600px; display: flex; align-items: center; justify-content: flex-start; gap: 15px; transition: all 0.2s ease;">
+                            <div id="recent-preview-name" style="font-weight: 700; font-size: 28px; color: #ffffff; font-family: 'Prompt', sans-serif;">
+                                ผู้สนับสนุนล่าสุด
+                            </div>
+                            <div id="recent-preview-amount" style="font-weight: 700; font-size: 28px; color: #34d399; font-family: 'Prompt', sans-serif;">
+                                ฿100
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Controls Grid -->
+                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                        
+                        <!-- Row 1: สีชื่อ & สีจำนวนเงิน -->
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🎨 สีชื่อ</label>
+                                <input type="color" class="form-control" id="recent-cfg-color-name" value="#ffffff" style="height: 40px; padding: 2px; cursor: pointer;" oninput="updateRecentPreview()">
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🎨 สีจำนวนเงิน</label>
+                                <input type="color" class="form-control" id="recent-cfg-color-amount" value="#34d399" style="height: 40px; padding: 2px; cursor: pointer;" oninput="updateRecentPreview()">
+                            </div>
+                        </div>
+
+                        <!-- Row 2: ฟอนต์ชื่อ & ฟอนต์จำนวนเงิน -->
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🔤 ฟอนต์ชื่อ</label>
+                                <select class="form-control" id="recent-cfg-font-name" onchange="updateRecentPreview()">
+                                    <option value="Prompt">Prompt</option>
+                                    <option value="Mitr">Mitr</option>
+                                    <option value="Kanit">Kanit</option>
+                                    <option value="Sarabun">Sarabun</option>
+                                    <option value="Itim">Itim</option>
+                                    <option value="Mali">Mali</option>
+                                    <option value="Chakra Petch">Chakra Petch</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🔤 ฟอนต์จำนวนเงิน</label>
+                                <select class="form-control" id="recent-cfg-font-amount" onchange="updateRecentPreview()">
+                                    <option value="Prompt">Prompt</option>
+                                    <option value="Mitr">Mitr</option>
+                                    <option value="Kanit">Kanit</option>
+                                    <option value="Sarabun">Sarabun</option>
+                                    <option value="Itim">Itim</option>
+                                    <option value="Mali">Mali</option>
+                                    <option value="Chakra Petch">Chakra Petch</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: ขนาดฟอนต์ชื่อ & ขนาดฟอนต์จำนวนเงิน -->
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">📏 ขนาดฟอนต์ชื่อ: <span id="val-recent-font-size-name">28</span>px</label>
+                                <input type="range" min="10" max="194" value="28" class="form-control" id="recent-cfg-font-size-name" oninput="document.getElementById('val-recent-font-size-name').textContent=this.value; updateRecentPreview();">
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">📏 ขนาดฟอนต์จำนวนเงิน: <span id="val-recent-font-size-amount">28</span>px</label>
+                                <input type="range" min="10" max="194" value="28" class="form-control" id="recent-cfg-font-size-amount" oninput="document.getElementById('val-recent-font-size-amount').textContent=this.value; updateRecentPreview();">
+                            </div>
+                        </div>
+
+                        <!-- Row 4: ระยะห่างระหว่างชื่อและจำนวนเงิน (Item Gap) -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 0.85rem; font-weight: 600;">↔️ ระยะห่างระหว่างชื่อและจำนวนเงิน (Item Gap): <span id="val-recent-item-gap">15</span>px</label>
+                            <input type="range" min="0" max="250" value="15" class="form-control" id="recent-cfg-item-gap" oninput="document.getElementById('val-recent-item-gap').textContent=this.value; updateRecentPreview();">
+                        </div>
+
+                        <!-- Row 5: การจัดวาง (Layout Alignment) -->
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; display: block;">📐 การจัดวาง (Layout Alignment)</label>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                                <label style="cursor: pointer; background: rgba(255,255,255,0.05); border: 2px solid transparent; border-radius: 10px; padding: 12px; text-align: center; transition: all 0.2s ease;" class="layout-card" id="card-recent-layout-name_first">
+                                    <input type="radio" name="recent-layout-mode" value="name_first" checked onchange="updateRecentPreview()" style="display: none;">
+                                    <div style="display: flex; justify-content: center; gap: 6px; font-size: 0.85rem; margin-bottom: 6px;">
+                                        <span style="background: #3b82f6; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">ชื่อ</span>
+                                        <span style="background: #34d399; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold;">จำนวนเงิน</span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">แนวนอน (ชื่อซ้าย)</div>
+                                </label>
+
+                                <label style="cursor: pointer; background: rgba(255,255,255,0.05); border: 2px solid transparent; border-radius: 10px; padding: 12px; text-align: center; transition: all 0.2s ease;" class="layout-card" id="card-recent-layout-amount_first">
+                                    <input type="radio" name="recent-layout-mode" value="amount_first" onchange="updateRecentPreview()" style="display: none;">
+                                    <div style="display: flex; justify-content: center; gap: 6px; font-size: 0.85rem; margin-bottom: 6px;">
+                                        <span style="background: #34d399; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold;">จำนวนเงิน</span>
+                                        <span style="background: #3b82f6; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold;">ชื่อ</span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">แนวนอน (เงินซ้าย)</div>
+                                </label>
+
+                                <label style="cursor: pointer; background: rgba(255,255,255,0.05); border: 2px solid transparent; border-radius: 10px; padding: 12px; text-align: center; transition: all 0.2s ease;" class="layout-card" id="card-recent-layout-name_top">
+                                    <input type="radio" name="recent-layout-mode" value="name_top" onchange="updateRecentPreview()" style="display: none;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.8rem; margin-bottom: 6px;">
+                                        <span style="background: #3b82f6; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold;">ชื่อ</span>
+                                        <span style="background: #34d399; color: #000; padding: 2px 8px; border-radius: 4px; font-weight: bold;">จำนวนเงิน</span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">แนวตั้ง (ชื่อบน)</div>
+                                </label>
+
+                                <label style="cursor: pointer; background: rgba(255,255,255,0.05); border: 2px solid transparent; border-radius: 10px; padding: 12px; text-align: center; transition: all 0.2s ease;" class="layout-card" id="card-recent-layout-amount_top">
+                                    <input type="radio" name="recent-layout-mode" value="amount_top" onchange="updateRecentPreview()" style="display: none;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.8rem; margin-bottom: 6px;">
+                                        <span style="background: #34d399; color: #000; padding: 2px 8px; border-radius: 4px; font-weight: bold;">จำนวนเงิน</span>
+                                        <span style="background: #3b82f6; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold;">ชื่อ</span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: #94a3b8;">แนวตั้ง (เงินบน)</div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Row 6: กรองคำหยาบ & จำนวนรายการ -->
+                        <div class="row">
+                            <div class="col">
+                                <label style="font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <input type="checkbox" id="recent-cfg-filter-badwords" checked> กรองคำหยาบ (Filter Badwords)
+                                </label>
+                                <input type="text" class="form-control" id="recent-cfg-custom-badwords" placeholder="คำหยาบเพิ่มเติม (แยกด้วยเครื่องหมาย , )">
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">จำนวนรายการบริจาคล่าสุดที่จะแสดง</label>
+                                <select class="form-control" id="recent-cfg-limit">
+                                    <option value="1">แสดงเฉพาะรายการล่าสุดรายการเดียว (Recent 1 Single Banner)</option>
+                                    <option value="3">แสดง 3 รายการล่าสุด (Recent 3)</option>
+                                    <option value="5" selected>แสดง 5 รายการล่าสุด (Recent 5)</option>
+                                    <option value="10">แสดง 10 รายการล่าสุด (Recent 10)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 20px;">
+                        <button class="btn btn-success" style="padding: 12px 30px;" onclick="saveRecentDonatorConfig()">
+                            <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่า Recent Donator
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sub-tab 4: Donate Goal -->
+                <div id="subtab-goal" class="subtab-content" style="display: none;">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label>URL สำหรับ OBS Browser Source (หลอดเป้าหมายยอดเงิน Donate Goal):</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-control" id="url-widget-goal" readonly style="font-family: monospace; color: #38bdf8; background: rgba(0,0,0,0.3);">
+                            <button class="btn" style="background: rgba(56, 189, 248, 0.2); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.4); white-space: nowrap;" onclick="copyWidgetUrl('url-widget-goal')">
+                                <i class="fa-solid fa-copy"></i> คัดลอกลิงก์
+                            </button>
+                            <button class="btn" style="background: rgba(255,255,255,0.1); white-space: nowrap;" onclick="openWidgetPreview('goal')">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> ดูตัวอย่าง (เปิดแท็บใหม่)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 1. Embedded Live Goal Bar Preview Container (Matching TipMe screenshot) -->
+                    <div style="background: #111827; border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 35px 20px 20px 20px; margin-bottom: 25px; position: relative; width: 100%; box-sizing: border-box; overflow: hidden;" id="goal-preview-stage">
+                        <div style="position: absolute; top: 8px; left: 15px; font-size: 0.75rem; color: #9ca3af; background: rgba(0,0,0,0.5); padding: 2px 10px; border-radius: 20px;">
+                            <i class="fa-solid fa-eye"></i> ตัวอย่าง Donate Goal Bar (Live Preview)
+                        </div>
+
+                        <!-- Progress Bar Container -->
+                        <div id="goal-preview-bar-bg" style="background: #1e293b; border: 2px solid #000; border-radius: 6px; overflow: hidden; position: relative; height: 48px; width: 100%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                            <!-- Progress Fill Bar -->
+                            <div id="goal-preview-bar-fill" style="background: #22c55e; height: 100%; width: 25%; position: absolute; left: 0; top: 0; transition: width 0.3s ease, background 0.3s ease;"></div>
+                            
+                            <!-- Center Goal Text -->
+                            <span id="goal-preview-text" style="position: relative; z-index: 2; font-weight: 700; font-size: 22px; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); font-family: 'Prompt', sans-serif;">
+                                สมทบทุน ฿1,250 (25%)
+                            </span>
+                        </div>
+
+                        <!-- Bottom Labels (Start & End Targets) -->
+                        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.95rem; font-weight: 700; color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.8);" id="goal-preview-labels-row">
+                            <span id="goal-preview-start-lbl">฿0</span>
+                            <span id="goal-preview-end-lbl">฿5,000</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Controls Panel (Exact TipMe Layout) -->
+                    <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px; margin-bottom: 20px;">
+                        
+                        <!-- Row 1: ชื่อ (Goal Title) -->
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="font-weight: 600; font-size: 0.9rem;">ชื่อเป้าหมาย (Goal Title)</label>
+                            <input type="text" class="form-control" id="goal-cfg-title" value="เป้าหมายสนับสนุนสตรีมเมอร์" placeholder="เช่น สมทบทุนซื้อคอมใหม่" oninput="updateGoalPreview()">
+                        </div>
+
+                        <!-- Row 2: วันที่เริ่ม & วันที่สิ้นสุด -->
+                        <div class="row" style="margin-bottom: 6px;">
+                            <div class="col">
+                                <label style="font-weight: 600; font-size: 0.85rem;">วันที่เริ่ม (Start Date)</label>
+                                <input type="date" class="form-control" id="goal-cfg-start-date" onchange="updateGoalPreview()">
+                            </div>
+                            <div class="col">
+                                <label style="font-weight: 600; font-size: 0.85rem;">วันที่สิ้นสุด (End Date)</label>
+                                <input type="date" class="form-control" id="goal-cfg-end-date" onchange="updateGoalPreview()">
+                            </div>
+                        </div>
+                        <div style="font-size: 0.78rem; color: #94a3b8; margin-bottom: 20px;">
+                            * ระบบจะดึงยอดโดเนทตั้งแต่วันที่เริ่มให้อัตโนมัติ หากไม่ระบุจะคิดยอดรวมทั้งหมด
+                        </div>
+
+                        <!-- Row 3: เป้าหมาย & เริ่มต้น -->
+                        <div class="row" style="margin-bottom: 20px;">
+                            <div class="col">
+                                <label style="font-weight: 600; font-size: 0.85rem;">เป้าหมายยอดเงิน (Goal Target THB)</label>
+                                <input type="number" class="form-control" id="goal-cfg-target" value="5000" min="1" step="100" oninput="updateGoalPreview()">
+                            </div>
+                            <div class="col">
+                                <label style="font-weight: 600; font-size: 0.85rem;">ยอดเริ่มต้นสะสม (Initial Starting THB)</label>
+                                <input type="number" class="form-control" id="goal-cfg-initial" value="0" min="0" step="50" oninput="updateGoalPreview()">
+                            </div>
+                        </div>
+
+                        <!-- Row 4: ปรับแต่งสีหลอด สีพื้นหลัง สีข้อความ -->
+                        <div class="row" style="margin-bottom: 20px;">
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🎨 สีหลอด Progress</label>
+                                <input type="color" class="form-control" id="goal-cfg-color-bar" value="#22c55e" style="height: 40px; padding: 2px; cursor: pointer;" oninput="updateGoalPreview()">
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🎨 สีพื้นหลังหลอด</label>
+                                <input type="color" class="form-control" id="goal-cfg-color-bg" value="#1e293b" style="height: 40px; padding: 2px; cursor: pointer;" oninput="updateGoalPreview()">
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🎨 สีตัวอักษร</label>
+                                <input type="color" class="form-control" id="goal-cfg-color-text" value="#ffffff" style="height: 40px; padding: 2px; cursor: pointer;" oninput="updateGoalPreview()">
+                            </div>
+                        </div>
+
+                        <!-- Row 5: ฟอนต์ข้อความ & ฟอนต์ตัวเลข -->
+                        <div class="row" style="margin-bottom: 20px;">
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🔤 ฟอนต์ข้อความ (Title Font)</label>
+                                <select class="form-control" id="goal-cfg-font-title" onchange="updateGoalPreview()">
+                                    <option value="Prompt">Prompt</option>
+                                    <option value="Mitr">Mitr</option>
+                                    <option value="Kanit">Kanit</option>
+                                    <option value="Sarabun">Sarabun</option>
+                                    <option value="Itim">Itim</option>
+                                    <option value="Mali">Mali</option>
+                                    <option value="Chakra Petch">Chakra Petch</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label style="font-size: 0.8rem;">🔤 ฟอนต์ตัวเลข (Number Font)</label>
+                                <select class="form-control" id="goal-cfg-font-number" onchange="updateGoalPreview()">
+                                    <option value="Prompt">Prompt</option>
+                                    <option value="Mitr">Mitr</option>
+                                    <option value="Kanit">Kanit</option>
+                                    <option value="Sarabun">Sarabun</option>
+                                    <option value="Itim">Itim</option>
+                                    <option value="Mali">Mali</option>
+                                    <option value="Chakra Petch">Chakra Petch</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Row 6: ขนาดฟอนต์ -->
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label style="font-size: 0.85rem; font-weight: 600;">📏 ขนาดฟอนต์ (Font Size): <span id="val-goal-font-size">22</span>px</label>
+                            <input type="range" min="12" max="80" value="22" class="form-control" id="goal-cfg-font-size" oninput="document.getElementById('val-goal-font-size').textContent=this.value; updateGoalPreview();">
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 20px;">
+                        <button class="btn btn-success" style="padding: 12px 35px; font-size: 1rem;" onclick="saveGoalConfig()">
+                            <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่า Donate Goal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Setting -->
+        <div id="tab-setting" class="tab-content">
+            <!-- Streamer Profile Settings -->
+            <div class="card">
+                <h2 class="card-title"><i class="fa-solid fa-id-card"></i> ข้อมูลสตรีมเมอร์ (Streamer Profile)</h2>
+                
+                <div class="form-group">
+                    <label>ชื่อสตรีมเมอร์ / ช่องสตรีม (Streamer Name)</label>
+                    <input type="text" class="form-control" id="streamer-name" placeholder="ตัวอย่าง: SAIBOK หรือ VeloxGaming">
+                    <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 6px;">
+                        * ชื่อนี้จะนำไปแสดงบนหน้าเว็บรับโอนโดเนทสำหรับผู้สนับสนุน เช่น <strong>Support SAIBOK</strong> หรือ <strong>สนับสนุน SAIBOK ผ่านระบบ PromptPay QR Code</strong>
+                    </small>
+                </div>
+            </div>
+
+            <!-- Payment Settings -->
+            <div class="card">
+                <h2 class="card-title"><i class="fa-solid fa-vault"></i> คลังสมบัติ (Payment Settings)</h2>
+                
+                <div class="form-group">
+                    <label>เบอร์พร้อมเพย์ (PromptPay) / เลขบัตรประชาชน</label>
+                    <input type="text" class="form-control" id="promptpay-id" placeholder="เช่น 0812345678">
+                </div>
+
+                <div class="form-group">
+                    <label>ยอดโดเนทขั้นต่ำ (เพื่อให้โชว์ขึ้นจอ OBS)</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="number" class="form-control" id="minimum-donation" placeholder="10.0" step="1" min="1" style="width: 150px;">
+                        <span>THB</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Software Update Section -->
+            <div class="card" style="border: 1px solid rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.04);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h2 class="card-title" style="margin: 0; color: #c084fc;"><i class="fa-solid fa-arrows-rotate"></i> อัปเดตโปรแกรม (Software Update)</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
+                            เวอร์ชันในเครื่องปัจจุบันของคุณ: <strong style="color: #ffffff;" id="setting-current-ver-text">v1.0.0</strong> 
+                            <span id="setting-update-status-badge" style="margin-left: 10px; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; background: rgba(52, 211, 153, 0.2); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.3);">🟢 เป็นเวอร์ชันล่าสุด</span>
+                        </p>
+                    </div>
+                    <button class="btn" style="background: linear-gradient(135deg, #9333ea, #6366f1); border: none; color: #ffffff; padding: 10px 20px; font-weight: 700; cursor: pointer;" onclick="manualCheckUpdateBtn()">
+                        <i class="fa-solid fa-magnifying-glass"></i> ตรวจเช็กเวอร์ชันใหม่
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Save Button -->
+            <div class="card" style="text-align: center; background: rgba(0,0,0,0.2);">
+                <button class="btn btn-success" style="padding: 15px 40px; font-size: 1.1rem;" onclick="saveConfig()">
+                    <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่าทั้งหมด
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 4: History / Database Viewer -->
+        <div id="tab-history" class="tab-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h2 class="card-title" style="margin: 0;"><i class="fa-solid fa-database"></i> ฐานข้อมูลประวัติการโดเนท (Donation Database)</h2>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">
+                            แสดงรายการเงินโอนทั้งหมดที่ถูกบันทึกลงในไฟล์ฐานข้อมูล <code>veloxdonate.db</code>
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);" onclick="loadDonationHistory()">
+                            <i class="fa-solid fa-rotate-right"></i> รีเฟรชข้อมูล
+                        </button>
+                        <button class="btn btn-danger" onclick="confirmClearHistory()">
+                            <i class="fa-solid fa-trash-can"></i> ล้างประวัติทั้งหมด
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats summary badges -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; padding: 15px; text-align: center;">
+                        <div style="font-size: 0.8rem; color: #94a3b8;">ยอดโดเนทรวมทั้งหมด</div>
+                        <div style="font-size: 1.6rem; font-weight: 700; color: #34d399; margin-top: 4px;" id="hist-total-raised">฿0</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 10px; padding: 15px; text-align: center;">
+                        <div style="font-size: 0.8rem; color: #94a3b8;">จำนวนรายการทั้งหมด</div>
+                        <div style="font-size: 1.6rem; font-weight: 700; color: #60a5fa; margin-top: 4px;" id="hist-total-count">0 รายการ</div>
+                    </div>
+                </div>
+
+                <!-- Search / Filter -->
+                <div style="margin-bottom: 15px;">
+                    <input type="text" class="form-control" id="hist-search-input" placeholder="🔍 ค้นหาตามชื่อผู้บริจาค หรือ ข้อความ..." onkeyup="filterDonationTable()">
+                </div>
+
+                <!-- History Table -->
+                <div style="overflow-x: auto; border: 1px solid var(--glass-border); border-radius: 10px;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;" id="donation-history-table">
+                        <thead>
+                            <tr style="background: rgba(255,255,255,0.08); border-bottom: 1px solid var(--glass-border); color: #cbd5e1;">
+                                <th style="padding: 12px 15px;">#ID</th>
+                                <th style="padding: 12px 15px;">วัน-เวลา</th>
+                                <th style="padding: 12px 15px;">ชื่อผู้สนับสนุน</th>
+                                <th style="padding: 12px 15px;">ยอดเงิน (THB)</th>
+                                <th style="padding: 12px 15px;">ข้อความ</th>
+                                <th style="padding: 12px 15px;">สถานะ</th>
+                                <th style="padding: 12px 15px; text-align: center;">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hist-table-body">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 30px; color: #94a3b8;">กำลังโหลดข้อมูล...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: Network Setting (Dual-Routing Network Architecture) -->
+        <div id="tab-network" class="tab-content">
+            <div class="card">
+                <h2 class="card-title"><i class="fa-solid fa-network-wired"></i> ตั้งค่าโหมดเครือข่ายรับโดเนท (Public Network Routing Architecture)</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -5px; margin-bottom: 25px;">
+                    เลือกระบบการนำหน้าเว็บรับโดเนทออกสู่อินเทอร์เน็ตเพื่อให้ผู้ชมทางบ้านเข้ามากดสนับสนุน
+                </p>
+
+                <!-- 3 Routing Mode Cards Container -->
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    
+                    <!-- Card 1: Cloudflare Mode -->
+                    <div id="card-mode-1" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 22px; position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+                            <div style="display: flex; gap: 15px; align-items: flex-start;">
+                                <div style="width: 45px; height: 45px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); color: #34d399; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                                    <i class="fa-solid fa-cloud"></i>
+                                </div>
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #f8fafc;">Cloudflare Mode</h3>
+                                        <span id="badge-mode-1" style="background: rgba(255,255,255,0.1); color: #94a3b8; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">
+                                            ⚪ ไม่ได้เลือกใช้งาน
+                                        </span>
+                                    </div>
+                                    <p style="color: #cbd5e1; font-size: 0.88rem; margin-top: 6px; margin-bottom: 0;">
+                                        ใช้งานได้ฟรีโดยไม่ต้องสมัครสมาชิก VeloxGG แต่ว่าลิงก์ของคุณก็จะสุ่มใหม่ทุกครั้งที่เปิดโปรแกรมใหม่ (ต้องแปะลิงก์ Donate ใหม่ทุกครั้ง)
+                                    </p>
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn" style="background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2);" onclick="switchNetworkMode(1)">
+                                    <i class="fa-solid fa-circle-dot"></i> เลือกใช้งานโหมดนี้
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Public Donate URL Box inside Mode 1 -->
+                        <div style="margin-top: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(52, 211, 153, 0.2); border-radius: 10px; padding: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 600; white-space: nowrap;">
+                                🔗 ลิงก์สุ่มปัจจุบัน:
+                            </span>
+                            <input type="text" class="form-control" id="public-donate-url" readonly placeholder="กำลังสร้างลิงก์สาธารณะ..." style="font-family: monospace; color: #34d399; background: rgba(0,0,0,0.5); font-size: 0.9rem; flex: 1; min-width: 240px;">
+                            <button class="btn" style="background: rgba(52, 211, 153, 0.2); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.4); white-space: nowrap; font-size: 0.82rem; padding: 7px 14px;" onclick="copyPublicDonateUrl()">
+                                <i class="fa-solid fa-copy"></i> คัดลอกลิงก์
+                            </button>
+                            <button class="btn" style="background: rgba(255,255,255,0.1); white-space: nowrap; font-size: 0.82rem; padding: 7px 14px;" onclick="openPublicDonateUrl()">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดดูเว็บ
+                            </button>
+                        </div>
+
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <span style="font-size: 0.85rem; color: #94a3b8;"><i class="fa-solid fa-shield-halved" style="color: #34d399;"></i> ปลอดภัยสูงด้วย HTTPS Encryption + Cloudflare Anti-DDoS Protection</span>
+                            <span style="font-size: 0.85rem; color: #34d399; font-weight: 600;">ค่าบริการ: ฟรี 100%</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: VeloxGG Mode -->
+                    <div id="card-mode-2" style="background: rgba(168, 85, 247, 0.05); border: 2px solid rgba(168, 85, 247, 0.4); border-radius: 14px; padding: 22px; position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+                            <div style="display: flex; gap: 15px; align-items: flex-start;">
+                                <div style="width: 45px; height: 45px; border-radius: 10px; background: rgba(168, 85, 247, 0.2); color: #c084fc; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                                    <i class="fa-solid fa-award"></i>
+                                </div>
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #f8fafc;">VeloxGG Mode ⭐ (แนะนำ)</h3>
+                                        <span id="badge-mode-2" style="background: #059669; color: #ffffff; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">
+                                            🟢 กำลังใช้งานอยู่ (Active)
+                                        </span>
+                                    </div>
+                                    <p style="color: #cbd5e1; font-size: 0.88rem; margin-top: 6px; margin-bottom: 0;">
+                                        ได้ลิงก์คงที่ไม่เปลี่ยนใหม่ทุกครั้งที่เปิดปิดโปรแกรม (สบายกว่า Cloudflare Mode ไม่ต้องแปะลิงก์ใหม่)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Area for Mode 2 -->
+                        <div style="margin-top: 20px; background: rgba(0,0,0,0.25); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 12px; padding: 18px;">
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label style="font-size: 0.9rem; color: #e9d5ff; font-weight: 600;">
+                                    <i class="fa-solid fa-key" style="color: #c084fc;"></i> Velox Donate Token (รหัสลับเชื่อมต่อสตรีมเมอร์)
+                                </label>
+                                <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+                                    <input type="text" class="form-control" id="velox-donate-token" placeholder="คัดลอก Token จากหน้าเว็บ donate.veloxgg.com มาวางที่นี่" style="font-family: monospace; color: #a7f3d0; flex: 1;">
+                                    <button class="btn" id="btn-clear-token" onclick="clearTokenInput()" style="background: rgba(168, 85, 247, 0.15); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.3); padding: 10px 14px; font-size: 0.8rem; white-space: nowrap;" title="ล้างค่าเตรียมใส่ Token ใหม่">
+                                        <i class="fa-solid fa-arrows-rotate"></i> เปลี่ยน Token
+                                    </button>
+                                </div>
+                                <div style="margin-top: 12px;">
+                                    <button class="btn btn-success" id="btn-mode-2-activate" style="background: linear-gradient(135deg, #9333ea, #6366f1); border: none; color: #ffffff; font-weight: 600; padding: 12px 24px;" onclick="switchNetworkMode(2)">
+                                        <i class="fa-solid fa-power-off"></i> เปิดใช้งาน VeloxGG Mode
+                                    </button>
+                                </div>
+                                <small style="color: #94a3b8; font-size: 0.8rem; display: block; margin-top: 10px;">
+                                    * ล็อกอินเว็บ <code>donate.veloxgg.com</code> ไปที่ Dashboard เพื่อคัดลอก Token ประจำบัญชีของคุณ
+                                </small>
+                            </div>
+
+                            <input type="hidden" id="portal-url" value="https://donate.veloxgg.com">
+
+                            <!-- Status & Synced Link Info Box -->
+                            <div id="mode2-status-box" style="margin-top: 15px; padding: 14px; border-radius: 10px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                    <div id="mode2-status-text" style="font-size: 0.9rem; color: #e2e8f0;">
+                                        <i class="fa-solid fa-spinner fa-spin" style="color: #60a5fa;"></i> กำลังตรวจสอบสถานะการเชื่อมต่อ...
+                                    </div>
+                                    <div id="mode2-action-btns" style="display: flex; gap: 8px;">
+                                        <!-- Dynamic buttons injected by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <span style="font-size: 0.85rem; color: #c084fc;"><i class="fa-solid fa-shield-halved"></i> Cloudflare Reverse Proxy Shield ระบบป้องกัน Hi-End จาก Cloudflare</span>
+                            <span style="font-size: 0.85rem; color: #34d399; font-weight: 600;">ค่าบริการ: ฟรี 100% สำหรับสตรีมเมอร์ทุกคน</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Custom Domain Mode (Locked) -->
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 22px; position: relative; opacity: 0.85;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+                            <div style="display: flex; gap: 15px; align-items: flex-start;">
+                                <div style="width: 45px; height: 45px; border-radius: 10px; background: rgba(168, 85, 247, 0.15); color: #c084fc; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                                    <i class="fa-solid fa-globe"></i>
+                                </div>
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                        <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: #e2e8f0;">Custom Domain Mode</h3>
+                                        <span style="background: rgba(168, 85, 247, 0.2); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.4); padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">
+                                            🔒 บริการต่อตรงโดเมนส่วนตัว (เปิดบริการเร็วๆ นี้)
+                                        </span>
+                                    </div>
+                                    <p style="color: #94a3b8; font-size: 0.88rem; margin-top: 6px; margin-bottom: 0;">
+                                        ใช้ชื่อโดเมนส่วนตัวของสตรีมเมอร์มาผูกกับระบบ โดยทีมงาน VeloxGG เป็นผู้ช่วยดำเนินการจดและดูแลโดเมนให้โดยตรง
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <span style="font-size: 0.85rem; color: #64748b;"><i class="fa-solid fa-handshake"></i> ทีมงานจดโดเมนและตั้งค่า HTTPS ให้อัตโนมัติ</span>
+                            <span style="font-size: 0.85rem; color: #c084fc; font-weight: 600;">ค่าบริการ: จ่ายเฉพาะค่าจดโดเมนตามจริง (ไม่มีค่าบริการระบบเพิ่มเติม)</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auto-Generate Modal -->
+    <div class="modal-overlay" id="auto-gen-modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px; color: #c4b5fd;"><i class="fa-solid fa-wand-magic-sparkles"></i> สร้างสูตรอัตโนมัติ</h3>
+            <div class="form-group">
+                <label style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 5px; display: block;">1. ข้อความทั้งหมดจากสลิป (ก๊อปมาวาง)</label>
+                <textarea class="form-control" id="modal-full-text" rows="2" placeholder="ตัวอย่าง: รายการสำเร็จ เงินเข้า +150.00 บาท"></textarea>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 5px; display: block;">
+                    2. ยอดเงินที่อยู่ในข้อความ <span style="color: #ef4444; font-size: 0.75rem; margin-left: 5px;">(*สำคัญ: ต้องใส่จุดทศนิยมหลักสตางค์ด้วย เช่น .00)</span>
+                </label>
+                <input type="text" class="form-control" id="modal-target-amount" placeholder="ตัวอย่าง: 150.00">
+            </div>
+            <div class="row" style="margin-top: 25px;">
+                <div class="col">
+                    <button class="btn btn-block" style="background: rgba(255,255,255,0.1);" onclick="closeAutoGenerateModal()">ยกเลิก</button>
+                </div>
+                <div class="col">
+                    <button class="btn btn-success btn-block" onclick="confirmAutoGenerate()"><i class="fa-solid fa-check"></i> สร้างสูตร</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TinyURL Guide Modal -->
+    <div class="modal-overlay" id="guide-modal">
+        <div class="modal-content" style="max-width: 650px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+                <h3 style="color: #c084fc; margin: 0; font-size: 1.2rem;">
+                    <i class="fa-solid fa-link"></i> คู่มือย่อลิงก์สร้างชื่อรับโดเนทสวยๆ ด้วย TinyURL
+                </h3>
+                <button onclick="closeGuideModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.2rem; cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; margin-bottom: 20px;">
+                ลิงก์สาธารณะ Cloudflare Quick Tunnel (เช่น <code>xxx.trycloudflare.com</code>) มีความปลอดภัยและฟรี 100% แต่ชื่อ URL อาจดูสุ่มและจำยาก คุณสามารถย่อลิงก์ให้เป็นชื่อช่องของคุณเองได้ง่ายๆ <strong>ฟรี 100% ไม่เสียค่าใช้จ่าย</strong> เช่น <code>tinyurl.com/SAIBOK-Donate</code> ด้วยขั้นตอนดังนี้:
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px;">
+                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 15px; display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="background: #8b5cf6; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">1</div>
+                    <div>
+                        <strong style="color: #f1f5f9; display: block; margin-bottom: 4px;">คัดลอกลิงก์รับโดเนทสาธารณะ Cloudflare</strong>
+                        <span style="font-size: 0.85rem; color: #94a3b8;">สามารถกดปุ่มคัดลอกลิงก์ได้ทันทีตรงนี้ หรือกดผ่านการ์ดลิงก์สาธารณะในหน้าหลัก Controller</span>
+                        <div style="margin-top: 8px;">
+                            <button onclick="copyPublicDonateUrl()" class="btn" style="font-size: 0.8rem; padding: 6px 14px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);">
+                                <i class="fa-solid fa-copy"></i> 📋 คัดลอกลิงก์ Cloudflare ทันที
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 15px; display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="background: #8b5cf6; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">2</div>
+                    <div>
+                        <strong style="color: #f1f5f9; display: block; margin-bottom: 4px;">เปิดเว็บย่อลิงก์ TinyURL.com</strong>
+                        <span style="font-size: 0.85rem; color: #94a3b8;">กดเปิดเว็บไซต์ย่อลิงก์ฟรีผ่านปุ่มด้านล่างนี้</span>
+                        <div style="margin-top: 8px;">
+                            <a href="https://tinyurl.com/app" target="_blank" class="btn" style="font-size: 0.8rem; padding: 6px 14px; background: rgba(139, 92, 246, 0.2); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.4); text-decoration: none; display: inline-block;">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดเว็บ TinyURL.com
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 15px; display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="background: #8b5cf6; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">3</div>
+                    <div>
+                        <strong style="color: #f1f5f9; display: block; margin-bottom: 4px;">วางลิงก์และตั้งชื่อสตรีมเมอร์สั้นๆ (Custom Alias)</strong>
+                        <span style="font-size: 0.85rem; color: #94a3b8;">วาง URL ในช่อง <em>Enter long URL</em> แล้วตั้งชื่อสั้นๆ ในช่อง <em>Customize your link (Alias)</em> เช่น <code>SAIBOK-Donate</code></span>
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 15px; display: flex; gap: 15px; align-items: flex-start;">
+                    <div style="background: #10b981; color: #fff; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">4</div>
+                    <div>
+                        <strong style="color: #34d399; display: block; margin-bottom: 4px;">เสร็จสิ้น! ได้ลิงก์รับโดเนทสวยงามพร้อมแปะหน้าสตรีม</strong>
+                        <span style="font-size: 0.85rem; color: #94a3b8;">คุณจะได้ลิงก์ เช่น <code>https://tinyurl.com/SAIBOK-Donate</code> ไปใส่ในช่องคำอธิบายไลฟ์หรือแปะปุ่มโดเนทได้ทันที!</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <button class="btn btn-success" style="padding: 10px 25px;" onclick="closeGuideModal()">เข้าใจแล้ว</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Software Update Modal -->
+    <div class="modal-overlay" id="update-modal">
+        <div class="modal-content" style="max-width: 500px; padding: 30px; text-align: center; border: 1px solid rgba(168, 85, 247, 0.4); box-shadow: 0 0 50px rgba(168, 85, 247, 0.25);">
+            
+            <!-- State 1: Update Info -->
+            <div id="update-info-state">
+                <div style="width: 70px; height: 70px; border-radius: 20px; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem; color: #c084fc; box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+                <h2 style="margin-bottom: 10px; font-size: 1.5rem; color: #ffffff;">พบเวอร์ชันใหม่! <span id="update-version-tag" style="color: #c084fc;">v1.0.1</span></h2>
+                <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 20px;">
+                    โปรแกรม VeloxDonate มีเวอร์ชันใหม่พร้อมให้อัปเดต (เวอร์ชันปัจจุบันของคุณ: <span id="update-current-tag">v1.0.0</span>)
+                </p>
+                <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 25px; text-align: left; max-height: 120px; overflow-y: auto;">
+                    <div style="font-weight: 700; font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase;">รายละเอียดการอัปเดต (Changelog):</div>
+                    <div id="update-notes-text" style="font-size: 0.85rem; color: #e2e8f0; line-height: 1.5;"></div>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button class="btn" style="padding: 12px 20px; background: rgba(255, 255, 255, 0.08); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.15);" onclick="closeUpdateModal()">
+                        <i class="fa-solid fa-xmark"></i> ไว้ทีหลัง
+                    </button>
+                    <button id="btn-start-auto-update" onclick="startAutoUpdateProcess()" class="btn btn-success" style="padding: 12px 24px; background: linear-gradient(135deg, #9333ea, #6366f1); border: none; color: #ffffff; font-weight: 700; cursor: pointer;">
+                        <i class="fa-solid fa-bolt"></i> 🚀 อัปเดตทันที (1-Click)
+                    </button>
+                </div>
+            </div>
+
+            <!-- State 2: Progress Screen -->
+            <div id="update-progress-state" style="display: none;">
+                <div style="width: 70px; height: 70px; border-radius: 20px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2rem; color: #60a5fa; box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                </div>
+                <h2 style="margin-bottom: 10px; font-size: 1.4rem; color: #ffffff;">กำลังติดตั้งเวอร์ชันใหม่...</h2>
+                <p id="update-progress-msg" style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 20px;">
+                    กำลังดาวน์โหลดไฟล์อัปเดต...
+                </p>
+
+                <!-- Progress Bar -->
+                <div style="width: 100%; height: 14px; background: rgba(15, 23, 42, 0.8); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 15px; position: relative;">
+                    <div id="update-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #a855f7); transition: width 0.3s ease; border-radius: 10px;"></div>
+                </div>
+                <div id="update-percent-text" style="font-size: 1.1rem; font-weight: 700; color: #c084fc;">0%</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✅ บันทึกการตั้งค่าสำเร็จ!</div>
+
+    <script src="/static/js/controller.js"></script>
+</body>
+</html>

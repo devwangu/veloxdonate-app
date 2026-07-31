@@ -1,0 +1,92 @@
+{
+    "promptpay_id": "",
+    "backend_port": 5000,
+    "timeout_seconds": 300,
+    "admin_token": "",
+    "velox_donate_token": "",
+    "portal_url": "https://donate.veloxgg.com",
+    "minimum_donation": 10.0,
+    "line_window_title": "",
+    "regex_formats": [
+        {
+            "name": "SCB",
+            "pattern": "การเงินเข้า\\+?([\\d,]+\\.\\d{2})",
+            "type": "in"
+        },
+        {
+            "name": "KBank",
+            "pattern": "จํานวนเงิน([\\d,]+\\.\\d{2})",
+            "type": "in"
+        },
+        {
+            "name": "Krungthai",
+            "pattern": "เงินเข้า\\+?([\\d,]+\\.\\d{2})",
+            "type": "in"
+        }
+    ],
+    "alert_config": {
+        "color_name": "#fbbf24",
+        "color_amount": "#34d399",
+        "color_message": "#ffffff",
+        "template_text": "{name} สนับสนุน {amount} บาท!",
+        "image_url": "/static/presets/images/rocket.svg",
+        "image_position": "top",
+        "font_family": "Itim",
+        "font_size": 30,
+        "duration": 10,
+        "anim_in": "slideInDown",
+        "anim_out": "slideOutUp",
+        "sound_effect": "/static/presets/sounds/success.wav",
+        "sound_volume": 20,
+        "enable_tts": true,
+        "tts_voice": "th-TH-PremwadeeNeural",
+        "min_display": 0,
+        "min_tts": 10,
+        "word_wrap": true,
+        "anim_speed": 0.8,
+        "filter_badwords": true,
+        "badwords_custom": ""
+    },
+    "top_donator_config": {
+        "start_date": "",
+        "color_name": "#f5f5f5",
+        "color_amount": "#fbbf24",
+        "font_family_name": "Itim",
+        "font_family_amount": "Itim",
+        "font_size_name": 20,
+        "font_size_amount": 20,
+        "item_gap": 50,
+        "layout_mode": "name_first",
+        "limit": 3,
+        "filter_badwords": true,
+        "custom_badwords": ""
+    },
+    "recent_donator_config": {
+        "color_name": "#ffffff",
+        "color_amount": "#34d399",
+        "font_family_name": "Prompt",
+        "font_family_amount": "Prompt",
+        "font_size_name": 28,
+        "font_size_amount": 28,
+        "item_gap": 15,
+        "layout_mode": "name_first",
+        "limit": 5,
+        "filter_badwords": true,
+        "custom_badwords": ""
+    },
+    "goal_config": {
+        "title": "เป้าหมายสนับสนุนสตรีมเมอร์",
+        "start_date": "",
+        "end_date": "",
+        "target_amount": 5000.0,
+        "initial_amount": 0.0,
+        "color_bar": "#22c55e",
+        "color_bg": "#1e293b",
+        "color_text": "#ffffff",
+        "font_family_title": "Prompt",
+        "font_family_number": "Prompt",
+        "font_size": 24
+    },
+    "streamer_name": "VeloxStreamer",
+    "network_mode": 2
+}

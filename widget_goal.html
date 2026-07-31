@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Widget - Donation Goal Bar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Itim&family=Kanit:wght@400;600;700&family=Mali:wght@400;600;700&family=Mitr:wght@400;600;700&family=Prompt:wght@400;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: transparent;
+            overflow: hidden;
+            padding: 10px;
+            color: #fff;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        .goal-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .goal-bar-bg {
+            background: #1e293b;
+            border: 2px solid #000000;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            height: 48px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .goal-bar-fill {
+            background: #22c55e;
+            height: 100%;
+            width: 0%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: width 0.8s ease-in-out, background 0.3s ease;
+        }
+
+        .goal-text-overlay {
+            position: relative;
+            z-index: 2;
+            font-weight: 700;
+            font-size: 22px;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            white-space: nowrap;
+            padding: 0 15px;
+        }
+
+        .goal-bottom-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="goal-container">
+        <div class="goal-bar-bg" id="goal-bar-bg">
+            <div class="goal-bar-fill" id="goal-bar-fill"></div>
+            <div class="goal-text-overlay" id="goal-text-overlay">กำลังโหลดข้อมูลเป้าหมาย...</div>
+        </div>
+
+        <div class="goal-bottom-labels">
+            <span id="start-amount-label">฿0</span>
+            <span id="target-amount-label">฿5,000</span>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const API_URL = window.location.origin + "/api";
+
+        async function fetchGoal() {
+            try {
+                const res = await fetch(`${API_URL}/donations/goal`);
+                if (!res.ok) return;
+                const data = await res.json();
+
+                const gc = data.goal_config || {};
+                const title = data.title || gc.title || "เป้าหมายสนับสนุนสตรีมเมอร์";
+                const current = Number(data.current_amount) || 0;
+                const target = Number(data.target_amount) || 5000;
+                const percentage = Number(data.percentage) || 0;
+                const initial = Number(gc.initial_amount) || 0;
+
+                const colorBar = gc.color_bar || "#22c55e";
+                const colorBg = gc.color_bg || "#1e293b";
+                const colorText = gc.color_text || "#ffffff";
+                const fontTitle = gc.font_family_title || "Prompt";
+                const fontNumber = gc.font_family_number || "Prompt";
+                const fontSize = gc.font_size || 22;
+
+                const barBg = document.getElementById("goal-bar-bg");
+                const barFill = document.getElementById("goal-bar-fill");
+                const textEl = document.getElementById("goal-text-overlay");
+                const startLbl = document.getElementById("start-amount-label");
+                const endLbl = document.getElementById("target-amount-label");
+
+                if (barBg) barBg.style.background = colorBg;
+                if (barFill) {
+                    barFill.style.background = colorBar;
+                    barFill.style.width = `${Math.min(100, Math.max(0, percentage))}%`;
+                }
+
+                if (textEl) {
+                    textEl.style.color = colorText;
+                    textEl.style.fontFamily = `'${fontTitle}', sans-serif`;
+                    textEl.style.fontSize = `${fontSize}px`;
+                    textEl.innerHTML = `${title} <span style="font-family: '${fontNumber}', sans-serif;">฿${current.toLocaleString('th-TH', {minimumFractionDigits: 0})} (${percentage.toFixed(0)}%)</span>`;
+                }
+
+                if (startLbl) {
+                    startLbl.style.color = colorText;
+                    startLbl.style.fontFamily = `'${fontNumber}', sans-serif`;
+                    startLbl.textContent = `฿${initial.toLocaleString('th-TH', {minimumFractionDigits: 0})}`;
+                }
+
+                if (endLbl) {
+                    endLbl.style.color = colorText;
+                    endLbl.style.fontFamily = `'${fontNumber}', sans-serif`;
+                    endLbl.textContent = `฿${target.toLocaleString('th-TH', {minimumFractionDigits: 0})}`;
+                }
+
+            } catch (err) {
+                console.error("Fetch goal error:", err);
+            }
+        }
+
+        fetchGoal();
+        setInterval(fetchGoal, 4000);
+    </script>
+</body>
+</html>

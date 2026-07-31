@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS Widget - Recent Donator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Itim&family=Kanit:wght@400;600;700&family=Mali:wght@400;600;700&family=Mitr:wght@400;600;700&family=Prompt:wght@400;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: transparent;
+            overflow: hidden;
+            padding: 10px;
+            color: #fff;
+            font-family: 'Prompt', sans-serif;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        /* Clean Standalone Floating Container (No card border, no dark box) */
+        .recent-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
+            padding: 8px 16px;
+            border-radius: 10px;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .donor-name {
+            font-weight: 700;
+            white-space: nowrap;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        }
+
+        .donor-amount {
+            font-weight: 700;
+            white-space: nowrap;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        }
+
+        .recent-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="recent-widget-root">
+        <div class="recent-container" id="recent-single-box">
+            <div class="donor-name" id="donor-name">กำลังโหลดข้อมูล...</div>
+            <div class="donor-amount" id="donor-amount"></div>
+        </div>
+        <ul class="recent-list" id="recent-list-root" style="display: none;"></ul>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const API_URL = window.location.origin + "/api";
+
+        let recentConfig = {
+            color_name: "#ffffff",
+            color_amount: "#34d399",
+            font_family_name: "Prompt",
+            font_family_amount: "Prompt",
+            font_size_name: 28,
+            font_size_amount: 28,
+            item_gap: 15,
+            layout_mode: "name_first",
+            limit: 5
+        };
+
+        async function fetchConfig() {
+            try {
+                const res = await fetch(`${API_URL}/admin/config?token=${encodeURIComponent(token)}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.recent_donator_config) {
+                    recentConfig = { ...recentConfig, ...data.recent_donator_config };
+                }
+            } catch (e) {
+                console.error("Fetch recent config error:", e);
+            }
+        }
+
+        async function fetchRecentDonations() {
+            await fetchConfig();
+            try {
+                const limit = recentConfig.limit || 5;
+                const res = await fetch(`${API_URL}/donations/recent?limit=${limit}`);
+                if (!res.ok) return;
+                const data = await res.json();
+
+                const singleBox = document.getElementById("recent-single-box");
+                const listRoot = document.getElementById("recent-list-root");
+
+                const layoutMode = recentConfig.layout_mode || 'name_first';
+                const nameStyle = `color: ${recentConfig.color_name || '#ffffff'}; font-family: '${recentConfig.font_family_name || 'Prompt'}', sans-serif; font-size: ${recentConfig.font_size_name || 28}px;`;
+                const amountStyle = `color: ${recentConfig.color_amount || '#34d399'}; font-family: '${recentConfig.font_family_amount || 'Prompt'}', sans-serif; font-size: ${recentConfig.font_size_amount || 28}px;`;
+
+                let flexDir = 'row';
+                let nameOrder = '1';
+                let amountOrder = '2';
+                let justify = 'flex-start';
+                let align = 'center';
+
+                if (layoutMode === 'amount_first') {
+                    nameOrder = '2';
+                    amountOrder = '1';
+                } else if (layoutMode === 'name_top') {
+                    flexDir = 'column';
+                    justify = 'flex-start';
+                    align = 'center';
+                    nameOrder = '1';
+                    amountOrder = '2';
+                } else if (layoutMode === 'amount_top') {
+                    flexDir = 'column';
+                    justify = 'flex-start';
+                    align = 'center';
+                    nameOrder = '2';
+                    amountOrder = '1';
+                }
+
+                const itemGap = recentConfig.item_gap !== undefined ? recentConfig.item_gap : 15;
+
+                if (data.length === 0) {
+                    singleBox.style.display = "flex";
+                    listRoot.style.display = "none";
+                    singleBox.style.flexDirection = flexDir;
+                    singleBox.style.justifyContent = justify;
+                    singleBox.style.alignItems = align;
+                    singleBox.style.gap = `${itemGap}px`;
+
+                    const nameEl = document.getElementById("donor-name");
+                    const amountEl = document.getElementById("donor-amount");
+                    nameEl.style.cssText = nameStyle + ` order: ${nameOrder};`;
+                    amountEl.style.cssText = amountStyle + ` order: ${amountOrder};`;
+
+                    nameEl.textContent = "ยังไม่มีรายการผู้สนับสนุนล่าสุด";
+                    amountEl.textContent = "";
+                    return;
+                }
+
+                // If limit is 1 or user has 1 recent item, render clean standalone single badge
+                if (recentConfig.limit === 1 || data.length === 1) {
+                    singleBox.style.display = "flex";
+                    listRoot.style.display = "none";
+                    singleBox.style.flexDirection = flexDir;
+                    singleBox.style.justifyContent = justify;
+                    singleBox.style.alignItems = align;
+                    singleBox.style.gap = `${itemGap}px`;
+
+                    const recentItem = data[0];
+                    const nameEl = document.getElementById("donor-name");
+                    const amountEl = document.getElementById("donor-amount");
+
+                    nameEl.style.cssText = nameStyle + ` order: ${nameOrder};`;
+                    amountEl.style.cssText = amountStyle + ` order: ${amountOrder};`;
+
+                    nameEl.textContent = recentItem.name;
+                    amountEl.textContent = `฿${Number(recentItem.amount).toLocaleString('th-TH', {minimumFractionDigits: 0})}`;
+                } else {
+                    // Render multi-item list cleanly with CSS Grid alignment
+                    singleBox.style.display = "none";
+
+                    if (layoutMode === 'name_first' || layoutMode === 'amount_first') {
+                        listRoot.style.display = "grid";
+                        listRoot.style.gridTemplateColumns = "max-content max-content";
+                        listRoot.style.columnGap = `${itemGap}px`;
+                        listRoot.style.rowGap = "12px";
+                        listRoot.style.alignItems = "center";
+                        listRoot.style.justifyContent = "flex-start";
+
+                        listRoot.innerHTML = data.map((item) => {
+                            const formattedAmount = `฿${Number(item.amount).toLocaleString('th-TH', {minimumFractionDigits: 0})}`;
+                            
+                            if (layoutMode === 'amount_first') {
+                                return `
+                                    <div class="donor-amount" style="${amountStyle}">${formattedAmount}</div>
+                                    <div class="donor-name" style="${nameStyle}">${item.name}</div>
+                                `;
+                            } else {
+                                return `
+                                    <div class="donor-name" style="${nameStyle}">${item.name}</div>
+                                    <div class="donor-amount" style="${amountStyle}">${formattedAmount}</div>
+                                `;
+                            }
+                        }).join('');
+                    } else {
+                        // Stacked Vertical Layout (name_top or amount_top)
+                        listRoot.style.display = "flex";
+                        listRoot.style.flexDirection = "column";
+                        listRoot.style.gap = "16px";
+                        listRoot.style.alignItems = "flex-start";
+
+                        listRoot.innerHTML = data.map((item) => {
+                            const formattedAmount = `฿${Number(item.amount).toLocaleString('th-TH', {minimumFractionDigits: 0})}`;
+                            return `
+                                <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: ${itemGap}px;">
+                                    <div class="donor-name" style="${nameStyle} order: ${nameOrder};">${item.name}</div>
+                                    <div class="donor-amount" style="${amountStyle} order: ${amountOrder};">${formattedAmount}</div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                }
+            } catch (err) {
+                console.error("Fetch recent error:", err);
+            }
+        }
+
+        fetchRecentDonations();
+        setInterval(fetchRecentDonations, 4000);
+    </script>
+</body>
+</html>
