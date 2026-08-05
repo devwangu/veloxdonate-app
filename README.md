@@ -53,7 +53,7 @@ VeloxDonate คือระบบรับ Donate แบบ Real-time สำห�
 python build_portable.py
 ```
 
-ไฟล์ ZIP จะถูกสร้างไว้ที่ `dist_portable/VeloxDonate_v0.1.2_Portable.zip` (มี Python Embedded ภายในตัว ไม่โดน Windows SmartScreen บล็อก)
+ไฟล์ ZIP จะถูกสร้างไว้ที่ `dist_portable/VeloxDonate_v0.1.3_Portable.zip` (มี Python Embedded ภายในตัว ไม่โดน Windows SmartScreen บล็อก)
 
 ---
 

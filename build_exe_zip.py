@@ -3,7 +3,7 @@ import shutil
 import subprocess
 import zipfile
 
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DIST_DIR = os.path.join(BASE_DIR, "dist")
 BUILD_DIR = os.path.join(BASE_DIR, "build")

@@ -5,7 +5,7 @@ import zipfile
 import urllib.request
 import subprocess
 
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 EMBED_PYTHON_URL = "https://www.python.org/ftp/python/3.12.8/python-3.12.8-embed-amd64.zip"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
