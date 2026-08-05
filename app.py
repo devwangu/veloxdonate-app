@@ -238,6 +238,22 @@ def load_config():
             if k not in config["top_donator_config"]:
                 config["top_donator_config"][k] = v
         TOP_DONATOR_CONFIG = config["top_donator_config"]
+
+    if "recent_donator_config" not in config:
+        config["recent_donator_config"] = RECENT_DONATOR_CONFIG
+    else:
+        for k, v in RECENT_DONATOR_CONFIG.items():
+            if k not in config["recent_donator_config"]:
+                config["recent_donator_config"][k] = v
+        RECENT_DONATOR_CONFIG = config["recent_donator_config"]
+
+    if "goal_config" not in config:
+        config["goal_config"] = GOAL_CONFIG
+    else:
+        for k, v in GOAL_CONFIG.items():
+            if k not in config["goal_config"]:
+                config["goal_config"][k] = v
+        GOAL_CONFIG = config["goal_config"]
         
     # Save back if we added defaults
     try:
@@ -258,6 +274,9 @@ def load_config():
     LINE_WINDOW_TITLE = config.get("line_window_title", LINE_WINDOW_TITLE)
     REGEX_FORMATS = config.get("regex_formats", REGEX_FORMATS)
     ALERT_CONFIG = config.get("alert_config", ALERT_CONFIG)
+    TOP_DONATOR_CONFIG = config.get("top_donator_config", TOP_DONATOR_CONFIG)
+    RECENT_DONATOR_CONFIG = config.get("recent_donator_config", RECENT_DONATOR_CONFIG)
+    GOAL_CONFIG = config.get("goal_config", GOAL_CONFIG)
     
     print(f"Config loaded: StreamerName={STREAMER_NAME}, PromptPay={PROMPTPAY_ID}, Mode={NETWORK_MODE}, MinDonation={MINIMUM_DONATION}")
     
