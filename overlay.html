@@ -109,7 +109,7 @@
             sound_volume: 80,
             enable_tts: true,
             min_display: 0.0,
-            min_tts: 10.0
+            min_tts: 0.0
         };
 
         // Load Alert Config from Backend
@@ -242,17 +242,23 @@
         }
 
         async function speakTTS(text, vol = 80, voice = null) {
-            if (!text) return;
+            if (!text || !text.trim()) return;
             let targetVoice = voice || (alertConfig && alertConfig.tts_voice) || 'th-TH-PremwadeeNeural';
             if (!targetVoice || targetVoice === 'default') targetVoice = 'th-TH-PremwadeeNeural';
+            
             try {
-                const res = await fetch(`/api/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(targetVoice)}`);
+                const ttsApiUrl = `${API_URL}/tts?text=${encodeURIComponent(text.trim())}&voice=${encodeURIComponent(targetVoice)}`;
+                const res = await fetch(ttsApiUrl);
                 if (!res.ok) throw new Error("Edge TTS API error");
                 const data = await res.json();
                 if (data.success && data.audio_url) {
-                    const audio = new Audio(data.audio_url);
-                    audio.volume = Math.min(1.0, Math.max(0.0, vol / 100));
-                    audio.play().catch(e => console.error("Edge TTS audio play error:", e));
+                    let audioFullUrl = data.audio_url;
+                    if (!audioFullUrl.startsWith('http')) {
+                        const baseUrl = API_URL.replace(/\/api\/?$/, '');
+                        audioFullUrl = baseUrl + data.audio_url;
+                    }
+                    // Use Web Audio API buffer player to bypass Chrome/OBS Autoplay Policy!
+                    await playAlertSound(audioFullUrl, vol);
                     return;
                 }
             } catch(e) {
@@ -267,7 +273,7 @@
                     const utterance = new SpeechSynthesisUtterance(text);
                     utterance.lang = "th-TH";
                     utterance.rate = 1.0;
-                    utterance.volume = vol / 100;
+                    utterance.volume = Math.min(1.0, Math.max(0.0, vol / 100));
                     window.speechSynthesis.speak(utterance);
                 } catch(e) {
                     console.error("Web Speech fallback error:", e);
@@ -330,12 +336,18 @@
             const soundDurationMs = await playAlertSound(alertConfig.sound_effect, alertConfig.sound_volume);
 
             // Play TTS AFTER sound finishes + 1 second delay (1000ms)
-            const minTts = parseFloat(alertConfig.min_tts) || 0;
-            if (alertConfig.enable_tts && amount >= minTts) {
+            const minTts = (alertConfig.min_tts !== undefined && alertConfig.min_tts !== null) ? parseFloat(alertConfig.min_tts) : 0.0;
+            const enableTts = (alertConfig.enable_tts !== false && alertConfig.enable_tts !== "false" && alertConfig.enable_tts !== 0 && alertConfig.enable_tts !== "0");
+            
+            if (enableTts && amount >= minTts) {
                 const ttsDelayMs = (soundDurationMs > 0) ? (soundDurationMs + 1000) : 500;
                 setTimeout(() => {
-                    let speechText = `${data.name} ได้สนับสนุน ${amount} บาท`;
-                    if (data.message) speechText += ` ข้อความคือ ${data.message}`;
+                    // Clean HTML tags from name and message for speech
+                    const cleanName = (data.name || '').replace(/<[^>]*>?/gm, '').trim();
+                    const cleanMsg = (data.message || '').replace(/<[^>]*>?/gm, '').trim();
+                    
+                    let speechText = `${cleanName} ได้สนับสนุน ${amount} บาท`;
+                    if (cleanMsg) speechText += ` ข้อความคือ ${cleanMsg}`;
                     speakTTS(speechText, alertConfig.sound_volume, alertConfig.tts_voice || 'th-TH-PremwadeeNeural');
                 }, ttsDelayMs);
             }

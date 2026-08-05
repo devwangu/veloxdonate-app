@@ -398,12 +398,18 @@
                                 </button>
                             </div>
 
-                            <div style="margin-top: 12px;">
-                                <label style="font-size: 0.8rem;">เสียงอ่าน AI (Microsoft Edge Neural Voice)</label>
-                                <select class="form-control" id="cfg-tts-voice">
-                                    <option value="th-TH-PremwadeeNeural">👧 น้องเปรมวดี (เสียงผู้หญิง - หวานนุ่มนวล)</option>
-                                    <option value="th-TH-NiwatNeural">👨 คุณนิวัตน์ (เสียงผู้ชาย - สุภาพกึ่งทางการ)</option>
-                                </select>
+                            <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div>
+                                    <label style="font-size: 0.8rem;">เสียงอ่าน AI (Microsoft Edge Neural Voice)</label>
+                                    <select class="form-control" id="cfg-tts-voice">
+                                        <option value="th-TH-PremwadeeNeural">👧 น้องเปรมวดี (เสียงผู้หญิง - หวานนุ่มนวล)</option>
+                                        <option value="th-TH-NiwatNeural">👨 คุณนิวัตน์ (เสียงผู้ชาย - สุภาพกึ่งทางการ)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.8rem;">ขั้นต่ำในการอ่าน TTS (บาท) [0 = อ่านทุกยอด]:</label>
+                                    <input type="number" min="0" step="1" class="form-control" id="cfg-min-tts" value="0">
+                                </div>
                             </div>
                         </div>
 

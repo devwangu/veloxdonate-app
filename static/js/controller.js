@@ -77,6 +77,7 @@ async function loadConfig() {
             }
             if (ac.enable_tts !== undefined && document.getElementById('cfg-enable-tts')) document.getElementById('cfg-enable-tts').checked = ac.enable_tts;
             if (ac.tts_voice && document.getElementById('cfg-tts-voice')) document.getElementById('cfg-tts-voice').value = ac.tts_voice;
+            if (ac.min_tts !== undefined && document.getElementById('cfg-min-tts')) document.getElementById('cfg-min-tts').value = ac.min_tts;
             if (ac.min_display !== undefined && document.getElementById('cfg-min-display')) document.getElementById('cfg-min-display').value = ac.min_display;
         }
 
@@ -1487,6 +1488,7 @@ async function saveAlertConfig(showNotification = true) {
         sound_volume: parseInt(document.getElementById('cfg-sound-volume').value),
         enable_tts: document.getElementById('cfg-enable-tts').checked,
         tts_voice: document.getElementById('cfg-tts-voice') ? document.getElementById('cfg-tts-voice').value : 'th-TH-PremwadeeNeural',
+        min_tts: document.getElementById('cfg-min-tts') ? parseFloat(document.getElementById('cfg-min-tts').value) : 0,
         min_display: document.getElementById('cfg-min-display') ? parseFloat(document.getElementById('cfg-min-display').value) : 0
     };
 
