@@ -133,7 +133,6 @@ ALERT_CONFIG = {
     "sound_volume": 80,
     "enable_tts": True,
     "tts_voice": "th-TH-PremwadeeNeural",
-    "min_tts": 0.0,
     "min_display": 0.0,
     "filter_badwords": True,
     "badwords_custom": ""

@@ -41,7 +41,6 @@
         "enable_tts": true,
         "tts_voice": "th-TH-PremwadeeNeural",
         "min_display": 0,
-        "min_tts": 0,
         "word_wrap": true,
         "anim_speed": 0.8,
         "filter_badwords": true,

@@ -336,10 +336,9 @@
             const soundDurationMs = await playAlertSound(alertConfig.sound_effect, alertConfig.sound_volume);
 
             // Play TTS AFTER sound finishes + 1 second delay (1000ms)
-            const minTts = (alertConfig.min_tts !== undefined && alertConfig.min_tts !== null) ? parseFloat(alertConfig.min_tts) : 0.0;
             const enableTts = (alertConfig.enable_tts !== false && alertConfig.enable_tts !== "false" && alertConfig.enable_tts !== 0 && alertConfig.enable_tts !== "0");
             
-            if (enableTts && amount >= minTts) {
+            if (enableTts) {
                 const ttsDelayMs = (soundDurationMs > 0) ? (soundDurationMs + 1000) : 500;
                 setTimeout(() => {
                     // Clean HTML tags from name and message for speech
