@@ -1079,15 +1079,25 @@ def generate_tts():
     filename = hashlib.md5(cache_key).hexdigest() + ".mp3"
     filepath = os.path.join(TTS_CACHE_DIR, filename)
 
-    if not os.path.exists(filepath):
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(_generate_edge_tts_file(text_clean, voice, filepath))
-            loop.close()
-        except Exception as e:
-            print(f"Edge TTS Generation Error: {e}")
-            return jsonify({'error': f'TTS generation failed: {str(e)}'}), 500
+    if not os.path.exists(filepath) or os.path.getsize(filepath) == 0:
+        success = False
+        last_error = None
+        for attempt in range(2):
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(_generate_edge_tts_file(text_clean, voice, filepath))
+                loop.close()
+                if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
+                    success = True
+                    break
+            except Exception as e:
+                last_error = e
+                time.sleep(0.3)
+
+        if not success:
+            print(f"Edge TTS Generation Error: {last_error}")
+            return jsonify({'error': f'TTS generation failed: {str(last_error)}'}), 500
 
     return jsonify({
         'success': True,
