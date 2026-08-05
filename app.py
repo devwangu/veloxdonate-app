@@ -99,7 +99,7 @@ def serve_controller():
 import secrets
 
 # Global Config Defaults
-APP_VERSION = "0.1.1"
+APP_VERSION = "0.1.2"
 PROMPTPAY_ID = "0812345678"
 BACKEND_PORT = 5000
 TIMEOUT_SECONDS = 300  # 5 Minutes for UI Timer
