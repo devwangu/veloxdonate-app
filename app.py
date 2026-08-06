@@ -125,6 +125,7 @@ ALERT_CONFIG = {
     "image_position": "top",
     "font_family": "Prompt",
     "font_size": 32,
+    "font_size_msg": 20,
     "word_wrap": True,
     "duration": 6,
     "anim_in": "slideInDown",
@@ -345,9 +346,8 @@ def donate():
     Submits a new pending donation, calculates Decimal Confirmation,
     and returns PromptPay QR Code payload.
     """
-    data = request.json or {}
-    name = data.get("name", "Anonymous").strip()
-    message = data.get("message", "").strip()
+    name = (data.get("name") or "Anonymous").strip()[:30]
+    message = (data.get("message") or "").strip()[:200]
     
     try:
         amount = float(data.get("amount", 0))
@@ -1061,8 +1061,8 @@ def admin_test_alert():
 
     test_data = {
         "id": "test-" + str(uuid.uuid4())[:8],
-        "name": name,
-        "message": data.get("message", "ขอให้สตรีมเมอร์มีความสุขกับการสตรีมครับ! 💖"),
+        "name": str(name).strip()[:30],
+        "message": str(data.get("message", "ขอให้สตรีมเมอร์มีความสุขกับการสตรีมครับ! 💖")).strip()[:200],
         "amount": float(amount),
         "is_test": True
     }

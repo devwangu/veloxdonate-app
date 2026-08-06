@@ -33,6 +33,7 @@
         "image_position": "top",
         "font_family": "Itim",
         "font_size": 30,
+        "font_size_msg": 20,
         "duration": 10,
         "anim_in": "slideInDown",
         "anim_out": "slideOutUp",

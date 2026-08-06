@@ -232,8 +232,8 @@
                             <img id="preview-img" src="https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif" style="max-width: 120px; max-height: 120px; object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.5));">
                             
                             <!-- Standalone Text Card Box -->
-                            <div id="preview-alert-box" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 16px 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: center; min-width: 250px; max-width: 450px; transition: all 0.3s ease;">
-                                <div id="preview-title-row" style="font-weight: 700; font-size: 32px; color: #fbbf24; font-family: 'Prompt', sans-serif;">
+                            <div id="preview-alert-box" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 16px 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: center; min-width: 250px; width: max-content; max-width: 95%; transition: all 0.3s ease;">
+                                <div id="preview-title-row" style="font-weight: 700; font-size: 32px; color: #fbbf24; font-family: 'Prompt', sans-serif; white-space: nowrap;">
                                     Test USER สนับสนุน <span id="preview-amount" style="color: #34d399;">฿5,000</span> บาท!
                                 </div>
                                 <div id="preview-msg-row" style="font-size: 0.95rem; color: #ffffff; margin-top: 6px; font-family: 'Prompt', sans-serif;">
@@ -314,8 +314,14 @@
                                     </select>
                                 </div>
                                 <div class="col">
-                                    <label style="font-size: 0.8rem;">ขนาดฟอนต์: <span id="val-font-size">32</span>px</label>
-                                    <input type="range" min="16" max="72" value="32" class="form-control" id="cfg-font-size" oninput="document.getElementById('val-font-size').textContent=this.value; updateLivePreview();">
+                                    <div style="margin-bottom: 12px;">
+                                        <label style="font-size: 0.8rem;">📏 ขนาดฟอนต์ (ชื่อ + ยอดเงิน): <span id="val-font-size">32</span>px</label>
+                                        <input type="range" min="16" max="72" value="32" class="form-control" id="cfg-font-size" oninput="document.getElementById('val-font-size').textContent=this.value; updateLivePreview();">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.8rem;">📏 ขนาดฟอนต์ข้อความ (Donate): <span id="val-font-size-msg">20</span>px</label>
+                                        <input type="range" min="12" max="60" value="20" class="form-control" id="cfg-font-size-msg" oninput="document.getElementById('val-font-size-msg').textContent=this.value; updateLivePreview();">
+                                    </div>
                                 </div>
                             </div>
                         </div>

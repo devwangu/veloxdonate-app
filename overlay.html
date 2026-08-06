@@ -41,7 +41,12 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
             text-align: center;
             min-width: 280px;
-            max-width: 500px;
+            width: max-content;
+            max-width: 95vw;
+        }
+
+        .alert-header-text {
+            white-space: nowrap;
         }
 
     </style>
@@ -105,6 +110,7 @@
             image_position: "top",
             font_family: "Prompt",
             font_size: 32,
+            font_size_msg: 20,
             duration: 6,
             sound_volume: 80,
             enable_tts: true,
@@ -384,6 +390,7 @@
             alertHeader.style.color = alertConfig.color_name || "#fbbf24";
             
             alertMessage.style.fontFamily = `'${alertConfig.font_family || "Prompt"}', sans-serif`;
+            alertMessage.style.fontSize = `${alertConfig.font_size_msg || 20}px`;
             alertMessage.style.color = alertConfig.color_message || "#ffffff";
 
             // Format Header Text

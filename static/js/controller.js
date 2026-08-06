@@ -64,6 +64,10 @@ async function loadConfig() {
                 document.getElementById('cfg-font-size').value = ac.font_size;
                 document.getElementById('val-font-size').textContent = ac.font_size;
             }
+            if (ac.font_size_msg) {
+                document.getElementById('cfg-font-size-msg').value = ac.font_size_msg;
+                document.getElementById('val-font-size-msg').textContent = ac.font_size_msg;
+            }
             if (ac.duration) {
                 document.getElementById('cfg-duration').value = ac.duration;
                 document.getElementById('val-duration').textContent = ac.duration;
@@ -1034,6 +1038,7 @@ function updateLivePreview() {
     const templateText = document.getElementById('cfg-template-text').value || '{name} สนับสนุน {amount} บาท!';
     const fontFamily = document.getElementById('cfg-font-family').value || 'Prompt';
     const fontSize = document.getElementById('cfg-font-size').value || '32';
+    const fontSizeMsg = document.getElementById('cfg-font-size-msg') ? document.getElementById('cfg-font-size-msg').value : '20';
 
     const outerContainer = document.getElementById('preview-outer-container');
     const titleRow = document.getElementById('preview-title-row');
@@ -1071,6 +1076,7 @@ function updateLivePreview() {
 
     if (msgRow) {
         msgRow.style.fontFamily = `'${fontFamily}', sans-serif`;
+        msgRow.style.fontSize = `${fontSizeMsg}px`;
         msgRow.style.color = colorMessage;
     }
 }
@@ -1501,6 +1507,7 @@ async function saveAlertConfig(showNotification = true) {
         image_position: document.getElementById('cfg-image-position').value,
         font_family: document.getElementById('cfg-font-family').value,
         font_size: parseInt(document.getElementById('cfg-font-size').value),
+        font_size_msg: document.getElementById('cfg-font-size-msg') ? parseInt(document.getElementById('cfg-font-size-msg').value) : 20,
         duration: parseInt(document.getElementById('cfg-duration').value),
         anim_in: document.getElementById('cfg-anim-in').value,
         anim_out: document.getElementById('cfg-anim-out').value,
