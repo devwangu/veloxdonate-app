@@ -19,6 +19,9 @@
             padding: 10px;
             color: #fff;
             font-family: 'Prompt', sans-serif;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
         }
 
         /* Clean Standalone Floating Container (No card border, no dark box) */
@@ -183,7 +186,7 @@
                         listRoot.style.columnGap = `${itemGap}px`;
                         listRoot.style.rowGap = "12px";
                         listRoot.style.alignItems = "center";
-                        listRoot.style.justifyContent = "center";
+                        listRoot.style.justifyContent = "flex-start";
 
                         listRoot.innerHTML = data.map((item, index) => {
                             const formattedAmount = `฿${Number(item.total_amount).toLocaleString('th-TH', {minimumFractionDigits: 0})}`;
@@ -206,13 +209,13 @@
                         listRoot.style.display = "flex";
                         listRoot.style.flexDirection = "column";
                         listRoot.style.gap = "16px";
-                        listRoot.style.alignItems = "center";
+                        listRoot.style.alignItems = "flex-start";
 
                         listRoot.innerHTML = data.map((item, index) => {
                             const formattedAmount = `฿${Number(item.total_amount).toLocaleString('th-TH', {minimumFractionDigits: 0})}`;
                             const crown = index === 0 ? '👑 ' : '';
                             return `
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: ${itemGap}px;">
+                                <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: ${itemGap}px;">
                                     <div class="donor-name" style="${nameStyle} order: ${nameOrder};">${crown}${item.name}</div>
                                     <div class="donor-amount" style="${amountStyle} order: ${amountOrder};">${formattedAmount}</div>
                                 </div>
