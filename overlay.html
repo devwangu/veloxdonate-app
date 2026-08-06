@@ -327,61 +327,106 @@
             return null;
         }
 
-        // Trigger Alert Animation (Pre-loads EVERYTHING 100% before showing on screen!)
-        async function playAlert(data) {
-            const amount = Number(data.amount) || 0;
+        // ------------------------------------------------------------------
+        // DUAL-ENGINE ARCHITECTURE:
+        // Engine A: Background Pre-loader (Fetches & Decodes AudioBuffers into memory)
+        // Engine B: OBS Render Engine (Displays Packages on OBS Screen sequentially)
+        // ------------------------------------------------------------------
+        const rawAlertQueue = [];      // Raw donation items waiting to be pre-loaded
+        const readyRenderQueue = [];   // Fully prepared Ready Alert Packages
+        let isPreloading = false;
+        let isRendering = false;
 
-            // Check min display threshold
-            if (amount < alertConfig.min_display) {
-                isAlertPlaying = false;
-                processQueue();
-                return;
+        function queueAlert(data) {
+            rawAlertQueue.push(data);
+            processPreloadQueue();
+        }
+
+        // Engine A: Pre-loader Queue Worker
+        async function processPreloadQueue() {
+            if (isPreloading || rawAlertQueue.length === 0) return;
+            isPreloading = true;
+
+            while (rawAlertQueue.length > 0) {
+                const rawData = rawAlertQueue.shift();
+                const amount = Number(rawData.amount) || 0;
+
+                // Skip if below min display threshold
+                if (amount < (alertConfig.min_display || 0)) {
+                    continue;
+                }
+
+                // Clean name & message for speech
+                const cleanName = (rawData.name || '').replace(/<[^>]*>?/gm, '').trim();
+                const cleanMsg = (rawData.message || '').replace(/<[^>]*>?/gm, '').trim();
+                const enableTts = (alertConfig.enable_tts !== false && alertConfig.enable_tts !== "false" && alertConfig.enable_tts !== 0 && alertConfig.enable_tts !== "0");
+
+                let speechText = "";
+                if (enableTts) {
+                    speechText = `${cleanName} ได้สนับสนุน ${amount} บาท`;
+                    if (cleanMsg) speechText += ` ข้อความคือ ${cleanMsg}`;
+                }
+
+                const soundUrl = alertConfig.sound_effect;
+                const soundVol = alertConfig.sound_volume || 80;
+
+                // Pre-fetch TTS URL & decode AudioBuffers in parallel in background!
+                const ttsAudioUrl = speechText ? await fetchTTSAudioUrl(speechText, alertConfig.tts_voice) : null;
+                const soundBufferPromise = (soundUrl && soundUrl !== 'none') ? loadWebAudioBuffer(soundUrl) : Promise.resolve(null);
+                const ttsBufferPromise = ttsAudioUrl ? loadWebAudioBuffer(ttsAudioUrl) : Promise.resolve(null);
+
+                const [soundBuffer, ttsBuffer] = await Promise.all([soundBufferPromise, ttsBufferPromise]);
+
+                // Assemble Ready Package
+                const readyPackage = {
+                    data: rawData,
+                    amount: amount,
+                    soundUrl: soundUrl,
+                    soundVol: soundVol,
+                    soundBuffer: soundBuffer,
+                    ttsBuffer: ttsBuffer,
+                    speechText: speechText,
+                    enableTts: enableTts
+                };
+
+                readyRenderQueue.push(readyPackage);
+
+                // Notify Render Engine B that a new package is ready
+                processRenderQueue();
             }
 
-            // Clean name & message for speech
-            const cleanName = (data.name || '').replace(/<[^>]*>?/gm, '').trim();
-            const cleanMsg = (data.message || '').replace(/<[^>]*>?/gm, '').trim();
-            const enableTts = (alertConfig.enable_tts !== false && alertConfig.enable_tts !== "false" && alertConfig.enable_tts !== 0 && alertConfig.enable_tts !== "0");
+            isPreloading = false;
+        }
 
-            let speechText = "";
-            if (enableTts) {
-                speechText = `${cleanName} ได้สนับสนุน ${amount} บาท`;
-                if (cleanMsg) speechText += ` ข้อความคือ ${cleanMsg}`;
-            }
+        // Engine B: Render Queue Worker
+        async function processRenderQueue() {
+            if (isRendering || readyRenderQueue.length === 0) return;
+            isRendering = true;
 
-            // ----------------------------------------------------
-            // PHASE 1: PRE-LOAD ALL AUDIO & TTS 100% IN ADVANCE!
-            // ----------------------------------------------------
-            const soundUrl = alertConfig.sound_effect;
-            const soundVol = alertConfig.sound_volume || 80;
+            await fetchConfig();
+            const pkg = readyRenderQueue.shift();
+            await renderAlertPackage(pkg);
 
-            // 1A. Pre-fetch TTS URL
-            const ttsAudioUrl = speechText ? await fetchTTSAudioUrl(speechText, alertConfig.tts_voice) : null;
+            isRendering = false;
+            // Process next ready package in render queue
+            processRenderQueue();
+        }
 
-            // 1B. Pre-decode Chime & TTS in parallel into WebAudio memory
-            const soundBufferPromise = (soundUrl && soundUrl !== 'none') ? loadWebAudioBuffer(soundUrl) : Promise.resolve(null);
-            const ttsBufferPromise = ttsAudioUrl ? loadWebAudioBuffer(ttsAudioUrl) : Promise.resolve(null);
+        async function renderAlertPackage(pkg) {
+            const data = pkg.data;
+            const amount = pkg.amount;
+            const soundVol = pkg.soundVol;
 
-            const [soundBuffer, ttsBuffer] = await Promise.all([soundBufferPromise, ttsBufferPromise]);
-
-            // ----------------------------------------------------
-            // PHASE 2: DISPLAY ON SCREEN & PLAY IN EXACT SEQUENCE
-            // ----------------------------------------------------
-
-            // Image Position & Visibility
+            // Apply Image Position & Visibility
             const pos = alertConfig.image_position || "top";
             if (pos === "none" || !alertConfig.image_url) {
                 alertImg.style.display = "none";
             } else {
                 alertImg.style.display = "block";
                 alertImg.src = alertConfig.image_url;
-                if (pos === "top") {
-                    alertContainer.style.flexDirection = "column";
-                } else if (pos === "bottom") {
-                    alertContainer.style.flexDirection = "column-reverse";
-                } else if (pos === "left") {
-                    alertContainer.style.flexDirection = "row";
-                }
+                if (pos === "top") alertContainer.style.flexDirection = "column";
+                else if (pos === "bottom") alertContainer.style.flexDirection = "column-reverse";
+                else if (pos === "left") alertContainer.style.flexDirection = "row";
             }
 
             // Apply Styles & Fonts
@@ -409,32 +454,32 @@
                 alertMessage.style.display = "none";
             }
 
-            // SHOW ALERT CONTAINER NOW THAT EVERYTHING IS 100% READY!
+            // SHOW ALERT CONTAINER NOW THAT EVERYTHING IS 100% PRE-LOADED AND READY!
             alertContainer.classList.add("show");
 
             // STEP 1: Play Chime Sound Effect from memory
             let soundDurMs = 0;
-            if (soundBuffer) {
-                soundDurMs = await playWebAudioBuffer(soundBuffer, soundVol);
-            } else if (soundUrl && soundUrl !== 'none') {
-                soundDurMs = await playAlertSound(soundUrl, soundVol);
+            if (pkg.soundBuffer) {
+                soundDurMs = await playWebAudioBuffer(pkg.soundBuffer, soundVol);
+            } else if (pkg.soundUrl && pkg.soundUrl !== 'none') {
+                soundDurMs = await playAlertSound(pkg.soundUrl, soundVol);
             }
 
             // STEP 2: Play TTS Audio IMMEDIATELY AFTER Chime finishes
             let ttsDurMs = 0;
-            if (ttsBuffer) {
+            if (pkg.ttsBuffer) {
                 await new Promise(r => setTimeout(r, 300)); // 300ms pause after chime
-                ttsDurMs = await playWebAudioBuffer(ttsBuffer, soundVol);
-            } else if (enableTts && speechText && 'speechSynthesis' in window) {
+                ttsDurMs = await playWebAudioBuffer(pkg.ttsBuffer, soundVol);
+            } else if (pkg.enableTts && pkg.speechText && 'speechSynthesis' in window) {
                 await new Promise(r => setTimeout(r, 300));
                 try {
                     window.speechSynthesis.cancel();
                     window.speechSynthesis.resume();
-                    const utterance = new SpeechSynthesisUtterance(speechText);
+                    const utterance = new SpeechSynthesisUtterance(pkg.speechText);
                     utterance.lang = "th-TH";
                     utterance.volume = Math.min(1.0, Math.max(0.0, soundVol / 100));
                     window.speechSynthesis.speak(utterance);
-                    ttsDurMs = Math.max(2500, speechText.length * 150);
+                    ttsDurMs = Math.max(2500, pkg.speechText.length * 150);
                 } catch(e) {
                     console.error("Web Speech fallback error:", e);
                 }
@@ -448,26 +493,14 @@
             const elapsedMs = soundDurMs + (ttsDurMs > 0 ? (ttsDurMs + 300) : 0);
             const remainingWaitMs = Math.max(1000, finalDisplayMs - elapsedMs);
 
-            setTimeout(() => {
-                alertContainer.classList.remove("show");
+            return new Promise(resolve => {
                 setTimeout(() => {
-                    isAlertPlaying = false;
-                    processQueue();
-                }, 500);
-            }, remainingWaitMs);
-        }
-
-        function queueAlert(data) {
-            alertQueue.push(data);
-            processQueue();
-        }
-
-        async function processQueue() {
-            if (isAlertPlaying || alertQueue.length === 0) return;
-            isAlertPlaying = true;
-            await fetchConfig();
-            const nextAlert = alertQueue.shift();
-            playAlert(nextAlert);
+                    alertContainer.classList.remove("show");
+                    setTimeout(() => {
+                        resolve();
+                    }, 500); // 500ms exit animation
+                }, remainingWaitMs);
+            });
         }
 
         // Connect to SSE (Server-Sent Events) from Flask backend
