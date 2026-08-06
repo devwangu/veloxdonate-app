@@ -1446,24 +1446,45 @@ async function triggerTestAlert(saveToDb = false) {
         }, 400);
     }
 
+    // Randomize name and amount (100 - 1000 THB)
+    const sampleNames = [
+        "สมชาย สายเปย์",
+        "น้องมิว ใจดี",
+        "พี่ตูน สั่งลุย",
+        "นักซุ่มสายโดเนท",
+        "ผู้ไม่ประสงค์ออกนาม",
+        "เจ้าชายสายเปย์",
+        "แมวส้มครองโลก",
+        "คุณกิตติ รายงาน",
+        "น้องปลาดาว",
+        "สายเปย์ทรงพลัง",
+        "FC ตัวจริง",
+        "ผู้สนับสนุนใจดี",
+        "คุณนายสายบุญ",
+        "น้องส้มส้ม",
+        "สตรีมเมอร์สู้ๆ"
+    ];
+    const randomName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+    const randomAmount = Math.floor(Math.random() * 901) + 100; // 100 - 1000 THB
+
     // Send API call to broadcast fake alert to OBS overlay
     try {
         await fetch(`/api/admin/test_alert?token=${token}`, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify({
-                name: "Test USER",
+                name: randomName,
                 message: "ตัวอย่าง Donate Alert",
-                amount: 5000,
+                amount: randomAmount,
                 save_to_db: saveToDb
             })
         });
         if (saveToDb) {
-            showToast("🧪 ทดสอบสลิปจำลองและบันทึกประวัติลงฐานข้อมูลแล้ว!");
+            showToast(`🧪 ทดสอบสลิปจำลอง (${randomName} ฿${randomAmount.toLocaleString()}) บันทึกประวัติแล้ว!`);
             // Refresh history table if active
             if (typeof loadDonationHistory === 'function') loadDonationHistory();
         } else {
-            showToast("🔔 ส่งสัญญาณทดสอบการแจ้งเตือนสำเร็จ (ไม่บันทึก DB)");
+            showToast(`🔔 ส่งสัญญาณทดสอบการแจ้งเตือน (${randomName} ฿${randomAmount.toLocaleString()}) สำเร็จ!`);
         }
     } catch(e) {
         console.error("Test alert error:", e);

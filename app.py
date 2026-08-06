@@ -1,5 +1,6 @@
 import os
 import sys
+import random
 
 # Ensure current directory is in sys.path for Embedded Python & custom environments
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -99,7 +100,7 @@ def serve_controller():
 import secrets
 
 # Global Config Defaults
-APP_VERSION = "0.1.3"
+APP_VERSION = "0.1.4"
 PROMPTPAY_ID = "0812345678"
 BACKEND_PORT = 5000
 TIMEOUT_SECONDS = 300  # 5 Minutes for UI Timer
@@ -1045,11 +1046,24 @@ def admin_test_alert():
     data = request.json or {}
     save_to_db = bool(data.get("save_to_db", False))
 
+    name = data.get("name")
+    if not name:
+        sample_names = [
+            "สมชาย สายเปย์", "น้องมิว ใจดี", "พี่ตูน สั่งลุย", "นักซุ่มสายโดเนท",
+            "ผู้ไม่ประสงค์ออกนาม", "เจ้าชายสายเปย์", "แมวส้มครองโลก", "คุณกิตติ รายงาน",
+            "น้องปลาดาว", "สายเปย์ทรงพลัง", "FC ตัวจริง", "ผู้สนับสนุนใจดี", "คุณนายสายบุญ"
+        ]
+        name = random.choice(sample_names)
+
+    amount = data.get("amount")
+    if amount is None:
+        amount = float(random.randint(100, 1000))
+
     test_data = {
         "id": "test-" + str(uuid.uuid4())[:8],
-        "name": data.get("name", "Test User"),
+        "name": name,
         "message": data.get("message", "ขอให้สตรีมเมอร์มีความสุขกับการสตรีมครับ! 💖"),
-        "amount": float(data.get("amount", 5000.0)),
+        "amount": float(amount),
         "is_test": True
     }
     
